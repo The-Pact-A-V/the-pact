@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="The Pact">
+    <meta name="theme-color" content="#8B7FC4">
+    <title>The Pact — A & V</title>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --lavender: #9B8FCC;
+            --lavender-light: #EEE9F8;
+            --lavender-mid: #C4B8E8;
+            --lavender-dark: #6B5FA0;
+            --sage: #6A9470;
+            --sage-light: #E0EDE1;
+            --sage-mid: #A2C5A6;
+            --cream: #FAFAF6;
+            --white: #FFFFFF;
+            --text: #2A2535;
+            --text-muted: #8A8599;
+            --text-light: #B8B4CC;
+            --border: #E8E4F2;
+            --shadow: rgba(107,95,160,0.10);
+            --shadow-strong: rgba(107,95,160,0.22);
+            --mental: #7B6FA0;
+            --physical: #5E8F65;
+            --spiritual: #C4856A;
+            --material: #A8607C;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --radius-lg: 24px;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        html { font-size:16px; }
+        body {
+            font-family:'DM Sans',sans-serif;
+            background:var(--cream);
+            color:var(--text);
+            min-height:100vh;
+            overflow-x:hidden;
+            line-height:1.5;
+        }
+
+        /* ---- SCREENS ---- */
+        .screen { display:none; min-height:100vh; }
+        .screen.active { display:block; }
+
+        /* ---- LOGIN ---- */
+        #screen-login {
+            background: linear-gradient(150deg,#EEE9F8 0%,#E4EDE5 55%,#F5EDF2 100%);
+            flex-direction:column; align-items:center;
+            justify-content:center; padding:48px 28px; text-align:center;
+            min-height:100vh;
+        }
+        #screen-login.active { display:flex; }
+        #screen-login.active { display:flex; }
+        .login-ornament {
+            font-size:13px; letter-spacing:4px; text-transform:uppercase;
+            color:var(--lavender-mid); margin-bottom:16px; font-weight:300;
+        }
+        .login-logo {
+            font-family:'Cormorant Garamond',serif; font-size:58px;
+            font-weight:500; color:var(--lavender-dark); letter-spacing:-2px;
+            margin-bottom:8px; line-height:1;
+        }
+        .login-sub {
+            font-family:'Cormorant Garamond',serif; font-size:16px;
+            font-style:italic; color:var(--text-muted); margin-bottom:12px;
+        }
+        .login-date-chip {
+            display:inline-flex; align-items:center; gap:6px;
+            background:white; border-radius:100px; padding:6px 14px;
+            font-size:12px; color:var(--lavender-dark); margin-bottom:48px;
+            box-shadow:0 2px 12px var(--shadow);
+        }
+        .login-date-dot { width:6px; height:6px; border-radius:50%; background:var(--sage); }
+        .login-prompt {
+            font-size:11px; letter-spacing:2px; text-transform:uppercase;
+            color:var(--text-muted); margin-bottom:20px; font-weight:400;
+        }
+        .user-cards { display:flex; flex-direction:column; gap:14px; width:100%; max-width:300px; }
+        .user-card {
+            background:white; border-radius:var(--radius); padding:18px 24px;
+            cursor:pointer; border:2px solid transparent; transition:all 0.2s ease;
+            display:flex; align-items:center; gap:16px;
+            box-shadow:0 4px 20px var(--shadow);
+        }
+        .user-card:hover,.user-card:active {
+            border-color:var(--lavender); transform:translateY(-2px);
+            box-shadow:0 8px 30px var(--shadow-strong);
+        }
+        .user-avatar {
+            width:42px; height:42px; border-radius:50%; display:flex;
+            align-items:center; justify-content:center;
+            font-family:'Cormorant Garamond',serif; font-size:20px;
+            font-weight:600; flex-shrink:0;
+        }
+        .user-avatar.apeksha { background:var(--lavender-light); color:var(--lavender-dark); }
+        .user-avatar.ved { background:var(--sage-light); color:var(--sage); }
+        .user-info { text-align:left; }
+        .user-name { font-weight:500; font-size:16px; color:var(--text); }
+        .user-role { font-size:12px; color:var(--text-muted); }
+        .login-footer {
+            margin-top:40px; font-size:12px; color:var(--text-light);
+            font-family:'Cormorant Garamond',serif; font-style:italic;
+        }
+
+        /* ---- APP LAYOUT ---- */
+        #screen-app { flex-direction:column; }
+        #screen-app.active { display:flex; }
+        .app-header {
+            background:white; padding:14px 20px 12px;
+            border-bottom:1px solid var(--border);
+            display:flex; align-items:center; justify-content:space-between;
+            position:sticky; top:0; z-index:100;
+        }
+        .header-brand {
+            font-family:'Cormorant Garamond',serif; font-size:26px;
+            font-weight:500; color:var(--lavender-dark); letter-spacing:-0.5px;
+        }
+        .header-right { display:flex; align-items:center; gap:10px; }
+        .header-avatar {
+            width:34px; height:34px; border-radius:50%; display:flex;
+            align-items:center; justify-content:center;
+            font-family:'Cormorant Garamond',serif; font-size:15px;
+            font-weight:600; cursor:pointer; transition:opacity 0.2s;
+        }
+        .header-avatar:hover { opacity:0.7; }
+        .header-name { font-size:13px; color:var(--text-muted); cursor:pointer; }
+
+        .app-content { flex:1; overflow-y:auto; padding-bottom:90px; }
+
+        /* ---- BOTTOM NAV ---- */
+        .bottom-nav {
+            position:fixed; bottom:0; left:0; right:0; background:white;
+            border-top:1px solid var(--border);
+            display:flex; padding:8px 0 max(12px,env(safe-area-inset-bottom)); z-index:100;
+        }
+        .nav-item {
+            flex:1; display:flex; flex-direction:column; align-items:center;
+            gap:3px; padding:6px 4px; cursor:pointer;
+            color:var(--text-light); font-size:9px; font-weight:400;
+            letter-spacing:0.8px; text-transform:uppercase; transition:color 0.2s;
+            border:none; background:none; font-family:'DM Sans',sans-serif;
+        }
+        .nav-item.active { color:var(--lavender-dark); }
+        .nav-item svg { width:20px; height:20px; }
+
+        /* ---- PAGES ---- */
+        .page { display:none; padding:20px; }
+        .page.active { display:block; animation:fadeIn 0.28s ease; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ---- SECTION TITLE ---- */
+        .section-title {
+            font-size:10px; letter-spacing:2.5px; text-transform:uppercase;
+            color:var(--text-muted); margin-bottom:14px; font-weight:400;
+        }
+
+        /* ---- DASHBOARD ---- */
+        .countdown-card {
+            background:linear-gradient(135deg,var(--lavender-dark) 0%,#8478BC 100%);
+            border-radius:var(--radius-lg); padding:22px 24px; color:white;
+            margin-bottom:18px; position:relative; overflow:hidden;
+        }
+        .countdown-card::before {
+            content:''; position:absolute; top:-40px; right:-40px;
+            width:140px; height:140px; border-radius:50%;
+            background:rgba(255,255,255,0.07);
+        }
+        .countdown-card::after {
+            content:''; position:absolute; bottom:-20px; right:50px;
+            width:80px; height:80px; border-radius:50%;
+            background:rgba(255,255,255,0.04);
+        }
+        .countdown-label {
+            font-size:10px; letter-spacing:2.5px; text-transform:uppercase;
+            opacity:0.65; margin-bottom:6px;
+        }
+        .countdown-row { display:flex; align-items:baseline; gap:10px; margin-bottom:2px; }
+        .countdown-days {
+            font-family:'Cormorant Garamond',serif; font-size:62px;
+            font-weight:600; line-height:1;
+        }
+        .countdown-days-label { font-size:14px; opacity:0.75; }
+        .countdown-sub { font-size:12px; opacity:0.7; margin-bottom:18px; }
+        .trip-status {
+            background:rgba(255,255,255,0.13); border-radius:10px;
+            padding:12px 14px; display:flex; justify-content:space-between; align-items:center;
+        }
+        .trip-status-text { font-size:13px; opacity:0.9; }
+        .trip-pill {
+            font-size:10px; font-weight:500; padding:4px 10px;
+            border-radius:20px; letter-spacing:0.5px; text-transform:uppercase;
+        }
+        .trip-pill.on-track { background:rgba(106,148,112,0.35); color:#C8F5CA; }
+        .trip-pill.off-track { background:rgba(180,80,80,0.3); color:#FFD0D0; }
+
+        .combined-card {
+            background:white; border-radius:var(--radius); padding:20px;
+            margin-bottom:16px; box-shadow:0 2px 14px var(--shadow);
+        }
+        .combined-top { display:flex; align-items:flex-end; gap:8px; margin-bottom:4px; }
+        .combined-pct {
+            font-family:'Cormorant Garamond',serif; font-size:52px;
+            font-weight:600; color:var(--lavender-dark); line-height:1;
+        }
+        .combined-label { font-size:13px; color:var(--text-muted); margin-bottom:8px; }
+        .progress-bar-wrap {
+            background:var(--lavender-light); border-radius:100px; height:8px; overflow:hidden; margin-bottom:8px;
+        }
+        .progress-bar-fill {
+            height:100%; border-radius:100px;
+            background:linear-gradient(90deg,var(--lavender-mid),var(--lavender-dark));
+            transition:width 0.9s cubic-bezier(0.16,1,0.3,1);
+            position:relative;
+        }
+        .target-marker {
+            position:absolute; right:0; top:-3px;
+            width:2px; height:14px; background:var(--sage); border-radius:1px;
+        }
+        .progress-note {
+            display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-muted);
+        }
+        .note-dot { width:6px; height:6px; border-radius:50%; background:var(--sage); flex-shrink:0; }
+
+        .users-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px; }
+        .user-progress-card {
+            background:white; border-radius:var(--radius); padding:16px;
+            box-shadow:0 2px 12px var(--shadow);
+        }
+        .upc-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+        .upc-avatar {
+            width:26px; height:26px; border-radius:50%; display:flex;
+            align-items:center; justify-content:center;
+            font-family:'Cormorant Garamond',serif; font-size:13px; font-weight:600;
+        }
+        .upc-avatar.apeksha { background:var(--lavender-light); color:var(--lavender-dark); }
+        .upc-avatar.ved { background:var(--sage-light); color:var(--sage); }
+        .upc-name { font-size:12px; font-weight:500; color:var(--text); }
+        .upc-pct {
+            font-family:'Cormorant Garamond',serif; font-size:36px;
+            font-weight:600; line-height:1; margin-bottom:2px;
+        }
+        .upc-pct.apeksha { color:var(--lavender-dark); }
+        .upc-pct.ved { color:var(--sage); }
+        .upc-pts { font-size:11px; color:var(--text-muted); }
+
+        .category-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+        .category-card {
+            background:white; border-radius:var(--radius); padding:16px;
+            box-shadow:0 2px 12px var(--shadow);
+        }
+        .cat-icon {
+            width:34px; height:34px; border-radius:10px; display:flex;
+            align-items:center; justify-content:center; font-size:17px; margin-bottom:10px;
+        }
+        .cat-icon.mental { background:#EEE9F8; }
+        .cat-icon.physical { background:var(--sage-light); }
+        .cat-icon.spiritual { background:#FBF0EA; }
+        .cat-icon.material { background:#FAE8F0; }
+        .cat-name {
+            font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
+            color:var(--text-muted); margin-bottom:4px;
+        }
+        .cat-progress {
+            font-family:'Cormorant Garamond',serif; font-size:28px;
+            font-weight:600; margin-bottom:8px;
+        }
+        .cat-progress.mental { color:var(--mental); }
+        .cat-progress.physical { color:var(--physical); }
+        .cat-progress.spiritual { color:var(--spiritual); }
+        .cat-progress.material { color:var(--material); }
+        .cat-bar { background:var(--border); border-radius:100px; height:4px; overflow:hidden; }
+        .cat-bar-fill { height:100%; border-radius:100px; transition:width 0.6s ease; }
+        .cat-bar-fill.mental { background:var(--mental); }
+        .cat-bar-fill.physical { background:var(--physical); }
+        .cat-bar-fill.spiritual { background:var(--spiritual); }
+        .cat-bar-fill.material { background:var(--material); }
+
+        /* ---- CHECK-IN ---- */
+        .checkin-header { margin-bottom:20px; }
+        .checkin-date {
+            font-family:'Cormorant Garamond',serif; font-size:28px;
+            font-weight:500; color:var(--text); margin-bottom:2px;
+        }
+        .checkin-sub { font-size:13px; color:var(--text-muted); }
+
+        .today-score-bar {
+            background:white; border-radius:var(--radius); padding:14px 18px;
+            margin-bottom:20px; display:flex; align-items:center;
+            justify-content:space-between; box-shadow:0 2px 12px var(--shadow);
+        }
+        .tsb-left { }
+        .tsb-label { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); }
+        .tsb-right { display:flex; align-items:baseline; gap:4px; }
+        .tsb-pts {
+            font-family:'Cormorant Garamond',serif; font-size:38px;
+            font-weight:600; color:var(--lavender-dark); line-height:1;
+        }
+        .tsb-max { font-size:14px; color:var(--text-muted); }
+
+        .category-section { margin-bottom:22px; }
+        .cat-section-header {
+            display:flex; align-items:center; gap:10px; margin-bottom:10px;
+            padding-bottom:10px; border-bottom:1px solid var(--border);
+        }
+        .cat-badge {
+            width:28px; height:28px; border-radius:8px; display:flex;
+            align-items:center; justify-content:center; font-size:14px;
+        }
+        .cat-badge.mental { background:#EEE9F8; }
+        .cat-badge.physical { background:var(--sage-light); }
+        .cat-badge.spiritual { background:#FBF0EA; }
+        .cat-badge.material { background:#FAE8F0; }
+        .cat-section-name {
+            font-size:11px; letter-spacing:2px; text-transform:uppercase;
+            color:var(--text-muted); font-weight:500;
+        }
+        .cat-section-score { margin-left:auto; font-size:12px; color:var(--text-light); }
+
+        .activity-item {
+            display:flex; align-items:center; gap:12px; padding:14px 16px;
+            background:white; border-radius:var(--radius-sm); margin-bottom:8px;
+            cursor:pointer; transition:all 0.18s ease; border:2px solid transparent;
+            box-shadow:0 1px 6px var(--shadow); user-select:none;
+        }
+        .activity-item:active { transform:scale(0.98); }
+        .activity-item.done { border-color:var(--lavender-mid); background:var(--lavender-light); }
+        .activity-item.done.physical { border-color:var(--sage-mid); background:var(--sage-light); }
+        .activity-item.done.spiritual { border-color:#E0B090; background:#FBF0EA; }
+        .activity-item.done.material { border-color:#DCA0B8; background:#FAE8F0; }
+        .activity-cb {
+            width:24px; height:24px; border-radius:6px; border:2px solid var(--border);
+            display:flex; align-items:center; justify-content:center;
+            flex-shrink:0; transition:all 0.2s; font-size:13px; color:transparent;
+        }
+        .activity-item.done .activity-cb { background:var(--lavender); border-color:var(--lavender); color:white; }
+        .activity-item.done.physical .activity-cb { background:var(--sage); border-color:var(--sage); }
+        .activity-item.done.spiritual .activity-cb { background:var(--spiritual); border-color:var(--spiritual); }
+        .activity-item.done.material .activity-cb { background:var(--material); border-color:var(--material); }
+        .activity-info { flex:1; }
+        .activity-name { font-size:14px; color:var(--text); margin-bottom:2px; }
+        .activity-item.done .activity-name { color:var(--text-muted); }
+        .freq-tag {
+            font-size:9px; background:var(--border); color:var(--text-muted);
+            padding:2px 6px; border-radius:4px; text-transform:uppercase; letter-spacing:0.5px;
+        }
+        .activity-pts {
+            font-family:'Cormorant Garamond',serif; font-size:20px;
+            font-weight:600; color:var(--text-light);
+        }
+        .activity-item.done .activity-pts { color:var(--lavender); }
+        .activity-item.done.physical .activity-pts { color:var(--physical); }
+        .activity-item.done.spiritual .activity-pts { color:var(--spiritual); }
+        .activity-item.done.material .activity-pts { color:var(--material); }
+
+        /* ---- PEEK TOGGLE ---- */
+        .peek-toggle {
+            display:flex; background:var(--border); border-radius:100px;
+            padding:3px; margin-bottom:20px; position:relative;
+        }
+        .peek-btn {
+            flex:1; padding:8px 12px; border-radius:100px; border:none;
+            background:transparent; font-family:'DM Sans',sans-serif;
+            font-size:13px; font-weight:500; cursor:pointer; transition:all 0.22s;
+            color:var(--text-muted); display:flex; align-items:center;
+            justify-content:center; gap:6px; z-index:1;
+        }
+        .peek-btn.active-mine {
+            background:white; color:var(--lavender-dark);
+            box-shadow:0 1px 6px var(--shadow-strong);
+        }
+        .peek-btn.active-theirs {
+            background:white; color:var(--sage);
+            box-shadow:0 1px 6px var(--shadow-strong);
+        }
+        .peek-avatar {
+            width:18px; height:18px; border-radius:50%; font-size:10px;
+            font-family:'Cormorant Garamond',serif; font-weight:600;
+            display:inline-flex; align-items:center; justify-content:center;
+        }
+        .peek-avatar.apeksha { background:var(--lavender-light); color:var(--lavender-dark); }
+        .peek-avatar.ved      { background:var(--sage-light);     color:var(--sage); }
+
+        .readonly-banner {
+            display:flex; align-items:center; gap:8px; padding:10px 14px;
+            background:#F5F0FF; border-radius:var(--radius-sm); margin-bottom:16px;
+            font-size:12px; color:var(--lavender-dark);
+            border:1px solid var(--lavender-light);
+        }
+        .activity-item.readonly { cursor:default; opacity:0.85; }
+        .activity-item.readonly:active { transform:none; }
+
+        /* ---- HISTORY ---- */
+        .week-card {
+            background:white; border-radius:var(--radius); padding:20px;
+            margin-bottom:18px; box-shadow:0 2px 12px var(--shadow);
+        }
+        .week-days { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+        .week-day { display:flex; flex-direction:column; align-items:center; gap:5px; }
+        .week-day-label { font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+        .week-dot {
+            width:34px; height:34px; border-radius:50%; display:flex;
+            align-items:center; justify-content:center; font-size:11px; font-weight:500;
+        }
+        .week-dot.future { background:transparent; border:1.5px dashed var(--border); color:var(--text-light); }
+        .week-dot.none { background:var(--border); color:var(--text-muted); }
+        .week-dot.low { background:#FBF0EA; color:var(--spiritual); }
+        .week-dot.medium { background:var(--lavender-light); color:var(--lavender); }
+        .week-dot.high { background:var(--sage-light); color:var(--sage); }
+        .week-dot.today { background:var(--lavender-dark); color:white; }
+
+        .history-entry {
+            background:white; border-radius:var(--radius-sm); padding:14px 16px;
+            margin-bottom:8px; display:flex; align-items:center; justify-content:space-between;
+            box-shadow:0 1px 6px var(--shadow);
+        }
+        .history-day { font-size:14px; font-weight:500; color:var(--text); }
+        .history-date { font-size:12px; color:var(--text-muted); }
+        .history-scores { display:flex; gap:14px; align-items:center; }
+        .hsc { text-align:center; }
+        .hsc-label { font-size:9px; color:var(--text-light); text-transform:uppercase; }
+        .hsc-val {
+            font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:600;
+        }
+        .hsc-val.apeksha { color:var(--lavender-dark); }
+        .hsc-val.ved { color:var(--sage); }
+        .history-sep { color:var(--border); font-size:22px; }
+        .history-possible { font-size:11px; color:var(--text-light); }
+
+        /* ---- ACTIVITIES MANAGER ---- */
+        .add-btn {
+            width:100%; padding:14px; border-radius:var(--radius);
+            border:2px dashed var(--lavender-mid); background:transparent;
+            color:var(--lavender-dark); font-family:'DM Sans',sans-serif; font-size:14px;
+            cursor:pointer; display:flex; align-items:center; justify-content:center;
+            gap:8px; margin-bottom:20px; transition:all 0.2s;
+        }
+        .add-btn:hover { background:var(--lavender-light); border-style:solid; }
+
+        .manage-cat-header {
+            display:flex; align-items:center; gap:10px;
+            margin-bottom:12px; margin-top:4px;
+        }
+        .manage-item {
+            background:white; border-radius:var(--radius-sm); padding:13px 16px;
+            margin-bottom:8px; display:flex; align-items:center; gap:12px;
+            box-shadow:0 1px 6px var(--shadow);
+        }
+        .manage-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+        .manage-dot.mental { background:var(--mental); }
+        .manage-dot.physical { background:var(--physical); }
+        .manage-dot.spiritual { background:var(--spiritual); }
+        .manage-dot.material { background:var(--material); }
+        .manage-info { flex:1; }
+        .manage-name { font-size:14px; color:var(--text); margin-bottom:1px; }
+        .manage-meta { font-size:11px; color:var(--text-muted); }
+        .manage-pts {
+            font-family:'Cormorant Garamond',serif; font-size:22px;
+            font-weight:600; color:var(--lavender); margin-right:6px;
+        }
+        .manage-btns { display:flex; gap:4px; }
+        .icon-btn {
+            width:30px; height:30px; border-radius:8px; border:none;
+            background:var(--lavender-light); color:var(--lavender-dark);
+            cursor:pointer; display:flex; align-items:center; justify-content:center;
+            font-size:13px; transition:all 0.15s;
+        }
+        .icon-btn:hover { background:var(--lavender-mid); }
+        .icon-btn.del { background:#FAE8F0; color:var(--material); }
+        .icon-btn.del:hover { background:#F0C8D8; }
+
+        /* ---- MODAL ---- */
+        .modal-overlay {
+            display:none; position:fixed; inset:0;
+            background:rgba(30,25,45,0.5); backdrop-filter:blur(4px);
+            z-index:200; align-items:flex-end; justify-content:center;
+        }
+        .modal-overlay.active { display:flex; }
+        .modal-sheet {
+            background:white; border-radius:24px 24px 0 0;
+            padding:20px 24px max(24px,env(safe-area-inset-bottom));
+            width:100%; max-width:480px;
+            animation:slideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+        }
+        @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+        .modal-handle {
+            width:36px; height:4px; background:var(--border);
+            border-radius:100px; margin:0 auto 20px;
+        }
+        .modal-title {
+            font-family:'Cormorant Garamond',serif; font-size:26px;
+            font-weight:500; color:var(--text); margin-bottom:20px;
+        }
+        .form-group { margin-bottom:14px; }
+        .form-label {
+            font-size:10px; text-transform:uppercase; letter-spacing:1.5px;
+            color:var(--text-muted); display:block; margin-bottom:7px;
+        }
+        .form-input, .form-select {
+            width:100%; padding:12px 14px; border:1.5px solid var(--border);
+            border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif;
+            font-size:15px; color:var(--text); background:var(--cream);
+            outline:none; transition:border-color 0.2s; appearance:none;
+        }
+        .form-input:focus, .form-select:focus { border-color:var(--lavender); }
+        .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .btn-primary {
+            width:100%; padding:14px; border-radius:var(--radius); border:none;
+            background:var(--lavender-dark); color:white; font-family:'DM Sans',sans-serif;
+            font-size:15px; font-weight:500; cursor:pointer; transition:all 0.2s;
+            margin-top:6px;
+        }
+        .btn-primary:hover { background:#5A4F8A; }
+        .btn-secondary {
+            width:100%; padding:14px; border-radius:var(--radius);
+            border:1.5px solid var(--border); background:transparent;
+            color:var(--text-muted); font-family:'DM Sans',sans-serif;
+            font-size:15px; cursor:pointer; margin-top:8px;
+        }
+
+        /* ---- EMPTY STATE ---- */
+        .empty-state { text-align:center; padding:40px 20px; color:var(--text-muted); }
+        .empty-icon { font-size:40px; margin-bottom:12px; }
+        .empty-text { font-size:14px; }
+
+        /* ---- CELEBRATION ---- */
+        .celebration {
+            position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+            z-index:300; text-align:center; pointer-events:none;
+            animation:celebPop 2.2s ease forwards;
+        }
+        @keyframes celebPop {
+            0%{opacity:0;transform:translate(-50%,-50%) scale(0.5)}
+            20%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}
+            75%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+            100%{opacity:0;transform:translate(-50%,-50%) scale(0.9)}
+        }
+        .celebration-inner {
+            font-family:'Cormorant Garamond',serif; font-size:26px;
+            font-weight:500; color:var(--lavender-dark); background:white;
+            padding:20px 32px; border-radius:20px;
+            box-shadow:0 20px 60px rgba(0,0,0,0.18);
+        }
+
+        /* ---- UTILS ---- */
+        .mb-sm{margin-bottom:8px} .mb-md{margin-bottom:16px} .mb-lg{margin-bottom:24px}
+        .spacer { height:16px; }
+    </style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div id="screen-loading" style="
+    position:fixed;inset:0;background:linear-gradient(150deg,#EEE9F8,#E4EDE5);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    z-index:999;gap:16px;
+">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:42px;color:#6B5FA0;letter-spacing:-1px">The Pact</div>
+    <div style="width:36px;height:36px;border:3px solid #C4B8E8;border-top-color:#6B5FA0;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div id="screen-login" class="screen active">
+    <div class="login-ornament">May 16 → July 5 · 2026</div>
+    <div class="login-logo">The Pact</div>
+    <div class="login-sub">Apeksha & Ved</div>
+    <div class="login-date-chip">
+        <div class="login-date-dot"></div>
+        50 days to change everything
+    </div>
+    <div class="login-prompt">Who's checking in?</div>
+    <div class="user-cards">
+        <div class="user-card" onclick="login('apeksha')">
+            <div class="user-avatar apeksha">A</div>
+            <div class="user-info">
+                <div class="user-name">Apeksha</div>
+                <div class="user-role">Raina</div>
+            </div>
+        </div>
+        <div class="user-card" onclick="login('ved')">
+            <div class="user-avatar ved">V</div>
+            <div class="user-info">
+                <div class="user-name">Ved</div>
+                <div class="user-role">Vyapak</div>
+            </div>
+        </div>
+    </div>
+    <div class="login-footer">"95% together or it doesn't count." 🌴</div>
+</div>
+
+<!-- MAIN APP -->
+<div id="screen-app" class="screen">
+    <header class="app-header">
+        <div class="header-brand">The Pact</div>
+        <div class="header-right">
+            <div class="header-avatar" id="header-avatar" onclick="logout()"></div>
+            <span class="header-name" id="header-name" onclick="logout()"></span>
+        </div>
+    </header>
+
+    <main class="app-content">
+
+        <!-- DASHBOARD -->
+        <div id="page-dashboard" class="page active">
+            <div class="countdown-card">
+                <div class="countdown-label">Days Until Goal · July 5</div>
+                <div class="countdown-row">
+                    <div class="countdown-days" id="days-left">--</div>
+                    <div class="countdown-days-label">days left</div>
+                </div>
+                <div class="countdown-sub">to hit 95% together</div>
+                <div class="trip-status">
+                    <div class="trip-status-text" id="trip-text">🌴 July 13–19 trip</div>
+                    <div class="trip-pill" id="trip-pill">On Track</div>
+                </div>
+            </div>
+
+            <div class="combined-card">
+                <div class="section-title">Combined Progress — Both of You</div>
+                <div class="combined-top">
+                    <div class="combined-pct" id="combined-pct">0%</div>
+                </div>
+                <div class="combined-label">of 95% goal · <span id="combined-pts-label">0 + 0 pts</span></div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" id="combined-bar" style="width:0%"></div>
+                </div>
+                <div class="progress-note">
+                    <div class="note-dot"></div>
+                    Target: 95% unlocks July 13–19 trip 🎒
+                </div>
+            </div>
+
+            <div class="users-row">
+                <div class="user-progress-card">
+                    <div class="upc-header">
+                        <div class="upc-avatar apeksha">A</div>
+                        <div class="upc-name">Apeksha</div>
+                    </div>
+                    <div class="upc-pct apeksha" id="apeksha-pct">0%</div>
+                    <div class="upc-pts" id="apeksha-pts">0 pts earned</div>
+                </div>
+                <div class="user-progress-card">
+                    <div class="upc-header">
+                        <div class="upc-avatar ved">V</div>
+                        <div class="upc-name">Ved</div>
+                    </div>
+                    <div class="upc-pct ved" id="ved-pct">0%</div>
+                    <div class="upc-pts" id="ved-pts">0 pts earned</div>
+                </div>
+            </div>
+
+            <div class="section-title">Today By Category</div>
+            <div class="category-grid" id="category-grid"></div>
+        </div>
+
+        <!-- CHECK-IN -->
+        <div id="page-checkin" class="page">
+            <div class="checkin-header">
+                <div class="checkin-date" id="checkin-date"></div>
+                <div class="checkin-sub" id="checkin-sub"></div>
+            </div>
+
+            <!-- Peek Toggle -->
+            <div class="peek-toggle" id="peek-toggle">
+                <button class="peek-btn active-mine" id="peek-mine" onclick="setPeek('mine')">
+                    <span class="peek-avatar" id="peek-mine-avatar"></span>
+                    <span id="peek-mine-label">Mine</span>
+                </button>
+                <button class="peek-btn" id="peek-theirs" onclick="setPeek('theirs')">
+                    <span class="peek-avatar" id="peek-theirs-avatar"></span>
+                    <span id="peek-theirs-label">Peek</span>
+                </button>
+            </div>
+
+            <!-- Read-only banner (shown in peek mode) -->
+            <div class="readonly-banner" id="readonly-banner" style="display:none">
+                👀 View only — you can see their progress but can't edit it
+            </div>
+
+            <div class="today-score-bar">
+                <div class="tsb-left">
+                    <div class="tsb-label" id="score-label">Today's Points</div>
+                </div>
+                <div class="tsb-right">
+                    <div class="tsb-pts" id="today-pts">0</div>
+                    <div class="tsb-max" id="today-max">/ 0</div>
+                </div>
+            </div>
+            <div id="checkin-body"></div>
+        </div>
+
+        <!-- HISTORY -->
+        <div id="page-history" class="page">
+            <div class="checkin-date" style="margin-bottom:4px">History</div>
+            <div class="checkin-sub" style="margin-bottom:20px">Your week at a glance</div>
+            <div class="week-card">
+                <div class="section-title">This Week</div>
+                <div class="week-days" id="week-grid"></div>
+            </div>
+            <div class="section-title">Daily Log</div>
+            <div id="history-list"></div>
+        </div>
+
+        <!-- ACTIVITIES -->
+        <div id="page-activities" class="page">
+            <div class="checkin-date" style="margin-bottom:4px">Activities</div>
+            <div class="checkin-sub" style="margin-bottom:20px">Editable anytime — update every week</div>
+            <button class="add-btn" onclick="openAddModal()">
+                <span style="font-size:20px;font-weight:300">+</span> Add New Activity
+            </button>
+            <div id="activities-by-cat"></div>
+        </div>
+
+    </main>
+
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="showPage('dashboard',this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+                <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+                <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+                <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+            </svg>
+            Home
+        </button>
+        <button class="nav-item" onclick="showPage('checkin',this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M9 12l2 2 4-4"/>
+                <circle cx="12" cy="12" r="9"/>
+            </svg>
+            Check In
+        </button>
+        <button class="nav-item" onclick="showPage('history',this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18"/>
+                <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
+            </svg>
+            History
+        </button>
+        <button class="nav-item" onclick="showPage('activities',this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                <path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4z"/>
+            </svg>
+            Activities
+        </button>
+    </nav>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="activity-modal">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <div class="modal-title" id="modal-title">Add Activity</div>
+        <div class="form-group">
+            <label class="form-label">Activity Name</label>
+            <input type="text" class="form-input" id="form-name" placeholder="e.g. Morning run">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-select" id="form-category">
+                    <option value="mental">🧠 Mental</option>
+                    <option value="physical">💪 Physical</option>
+                    <option value="spiritual">🕊️ Spiritual</option>
+                    <option value="material">💎 Material</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Frequency</label>
+                <select class="form-select" id="form-frequency">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Points (harder = more)</label>
+            <input type="number" class="form-input" id="form-points" placeholder="e.g. 15" min="1" max="100">
+        </div>
+        <input type="hidden" id="form-edit-id">
+        <button class="btn-primary" onclick="saveActivity()">Save Activity</button>
+        <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+    </div>
+</div>
+
+<script>
+// ========== SUPABASE ==========
+// 👇 Paste your values from Supabase → Project Settings → API
+const SUPABASE_URL      = 'REPLACE_WITH_YOUR_PROJECT_URL';
+const SUPABASE_ANON_KEY = 'REPLACE_WITH_YOUR_ANON_KEY';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ========== CONSTANTS ==========
+const GOAL_END   = new Date('2026-07-05T23:59:59');
+const START_DATE = new Date('2026-05-16T00:00:00');
+
+const DEFAULT_ACTIVITIES = {
+    apeksha: [
+        {id:'reading',   name:'Reading',              category:'mental',    frequency:'daily',   points:8},
+        {id:'upsc',      name:'UPSC Prep',             category:'mental',    frequency:'daily',   points:20},
+        {id:'gym',       name:'Gym',                   category:'physical',  frequency:'daily',   points:15},
+        {id:'steps',     name:'10k Steps',             category:'physical',  frequency:'daily',   points:10},
+        {id:'yoga',      name:'Yoga',                  category:'physical',  frequency:'weekly',  points:12},
+        {id:'no_junk',   name:'No Junk Food',          category:'physical',  frequency:'daily',   points:10},
+        {id:'meditation',name:'Meditation',            category:'spiritual', frequency:'daily',   points:10},
+        {id:'prayer',    name:'Prayer',                category:'spiritual', frequency:'daily',   points:8},
+        {id:'gratitude', name:'Gratitude Journal',     category:'spiritual', frequency:'daily',   points:7},
+        {id:'forgive',   name:'Forgiveness Practice',  category:'spiritual', frequency:'weekly',  points:10},
+        {id:'saving',    name:'Saving Money',          category:'material',  frequency:'daily',   points:10},
+        {id:'yt',        name:'Faceless YT Channel',   category:'material',  frequency:'weekly',  points:20},
+    ],
+    ved: [
+        {id:'reading',   name:'Reading',              category:'mental',    frequency:'daily',   points:8},
+        {id:'upsc',      name:'UPSC Prep',             category:'mental',    frequency:'daily',   points:20},
+        {id:'gym',       name:'Gym',                   category:'physical',  frequency:'daily',   points:15},
+        {id:'steps',     name:'10k Steps',             category:'physical',  frequency:'daily',   points:10},
+        {id:'yoga',      name:'Yoga',                  category:'physical',  frequency:'weekly',  points:12},
+        {id:'no_junk',   name:'No Junk Food',          category:'physical',  frequency:'daily',   points:10},
+        {id:'meditation',name:'Meditation',            category:'spiritual', frequency:'daily',   points:10},
+        {id:'prayer',    name:'Prayer',                category:'spiritual', frequency:'daily',   points:8},
+        {id:'gratitude', name:'Gratitude Journal',     category:'spiritual', frequency:'daily',   points:7},
+        {id:'forgive',   name:'Forgiveness Practice',  category:'spiritual', frequency:'weekly',  points:10},
+        {id:'saving',    name:'Saving Money',          category:'material',  frequency:'daily',   points:10},
+        {id:'yt',        name:'Faceless YT Channel',   category:'material',  frequency:'weekly',  points:20},
+    ]
+};
+
+const CATS = {
+    mental:   {label:'Mental',   emoji:'🧠'},
+    physical: {label:'Physical', emoji:'💪'},
+    spiritual:{label:'Spiritual',emoji:'🕊️'},
+    material: {label:'Material', emoji:'💎'},
+};
+
+// ========== STATE ==========
+let currentUser = null;
+let activities  = {apeksha:[], ved:[]};
+let logs        = {apeksha:{}, ved:{}};
+
+// helper — always get the right user's activity list
+function acts(user) { return activities[user || currentUser] || []; }
+
+// peek mode — 'mine' or 'theirs'
+let peekMode = 'mine';
+function otherUser() { return currentUser === 'apeksha' ? 'ved' : 'apeksha'; }
+function otherName() { return currentUser === 'apeksha' ? 'Ved' : 'Apeksha'; }
+function viewedUser() { return peekMode === 'mine' ? currentUser : otherUser(); }
+
+function setPeek(mode) {
+    peekMode = mode;
+    const mine   = document.getElementById('peek-mine');
+    const theirs = document.getElementById('peek-theirs');
+    mine.className   = 'peek-btn' + (mode === 'mine'   ? ' active-mine'   : '');
+    theirs.className = 'peek-btn' + (mode === 'theirs' ? ' active-theirs' : '');
+    document.getElementById('readonly-banner').style.display = mode === 'theirs' ? 'flex' : 'none';
+    renderCheckin();
+}
+
+// ========== STORAGE (Supabase + localStorage fallback) ==========
+
+// Cache to localStorage for instant offline loads
+function cacheLocally() {
+    localStorage.setItem('pact_acts_a', JSON.stringify(activities.apeksha));
+    localStorage.setItem('pact_acts_v', JSON.stringify(activities.ved));
+    localStorage.setItem('pact_logs',   JSON.stringify(logs));
+}
+function loadFromCache() {
+    const da = localStorage.getItem('pact_acts_a');
+    const dv = localStorage.getItem('pact_acts_v');
+    activities.apeksha = da ? JSON.parse(da) : JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES.apeksha));
+    activities.ved     = dv ? JSON.parse(dv) : JSON.parse(JSON.stringify(DEFAULT_ACTIVITIES.ved));
+    const l  = localStorage.getItem('pact_logs');
+    logs = l ? JSON.parse(l) : {apeksha:{}, ved:{}};
+    if (!logs.apeksha) logs.apeksha = {};
+    if (!logs.ved)     logs.ved     = {};
+}
+
+// Load everything fresh from Supabase
+async function loadData() {
+    // First paint from cache (fast)
+    loadFromCache();
+
+    try {
+        const [{ data: actsA }, { data: actsV }, { data: logsData }] = await Promise.all([
+            sb.from('activities').select('*').eq('user_id','apeksha').order('created_at'),
+            sb.from('activities').select('*').eq('user_id','ved').order('created_at'),
+            sb.from('daily_logs').select('*')
+        ]);
+
+        // Use DB data if it exists, else keep defaults
+        if (actsA?.length) activities.apeksha = actsA;
+        if (actsV?.length) activities.ved     = actsV;
+
+        // Rebuild logs from flat DB rows → nested { user: { date: { actId: bool } } }
+        if (logsData?.length) {
+            logs = {apeksha:{}, ved:{}};
+            logsData.forEach(({ user_id, log_date, activity_id, completed }) => {
+                if (!logs[user_id])          logs[user_id]          = {};
+                if (!logs[user_id][log_date]) logs[user_id][log_date] = {};
+                logs[user_id][log_date][activity_id] = completed;
+            });
+        }
+
+        cacheLocally();
+    } catch(err) {
+        console.warn('Supabase unavailable, using cache:', err.message);
+    }
+}
+
+// Sync a single log toggle to Supabase
+async function syncLog(userId, date, activityId, completed) {
+    try {
+        await sb.from('daily_logs').upsert(
+            { user_id: userId, log_date: date, activity_id: activityId, completed },
+            { onConflict: 'user_id,log_date,activity_id' }
+        );
+    } catch(err) { console.warn('Log sync failed:', err.message); }
+}
+
+// Sync an activity upsert to Supabase
+async function syncActivity(userId, activity) {
+    try {
+        await sb.from('activities').upsert(
+            { ...activity, user_id: userId },
+            { onConflict: 'id,user_id' }
+        );
+    } catch(err) { console.warn('Activity sync failed:', err.message); }
+}
+
+// Delete an activity from Supabase
+async function deleteActivityFromDb(userId, activityId) {
+    try {
+        await sb.from('activities').delete()
+            .eq('user_id', userId).eq('id', activityId);
+    } catch(err) { console.warn('Delete sync failed:', err.message); }
+}
+
+// Legacy alias used by older calls
+function saveData() { cacheLocally(); }
+
+// ========== HELPERS ==========
+function todayStr() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function daysLeft() {
+    return Math.max(0, Math.ceil((GOAL_END - new Date()) / 86400000));
+}
+function daysSinceStart() {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const start = new Date(START_DATE); start.setHours(0,0,0,0);
+    return Math.max(1, Math.ceil((today - start) / 86400000) + 1);
+}
+function totalPossiblePerDay(user) {
+    return acts(user).reduce((s,a) => s + a.points, 0);
+}
+function earnedOnDate(user, ds) {
+    const log = (logs[user]||{})[ds] || {};
+    return acts(user).reduce((s,a) => s + (log[a.id] ? a.points : 0), 0);
+}
+function totalEarned(user) {
+    return Object.keys(logs[user]||{}).reduce((s,ds) => s + earnedOnDate(user,ds), 0);
+}
+function totalPossible(user) {
+    return daysSinceStart() * totalPossiblePerDay(user);
+}
+function userPct(user) {
+    const possible = totalPossible(user);
+    if (!possible) return 0;
+    return Math.min(100, Math.round(totalEarned(user) / possible * 100));
+}
+function combinedPct() {
+    const possible = totalPossible('apeksha') + totalPossible('ved');
+    if (!possible) return 0;
+    const earned = totalEarned('apeksha') + totalEarned('ved');
+    return Math.min(100, Math.round(earned / possible * 100));
+}
+function isOnTrack() {
+    const totalDays = Math.ceil((GOAL_END - START_DATE) / 86400000);
+    const daysPassed = daysSinceStart();
+    const expected = Math.round((daysPassed / totalDays) * 95);
+    return combinedPct() >= expected;
+}
+
+// ========== AUTH ==========
+function login(user) {
+    currentUser = user;
+    localStorage.setItem('pact_user', user);
+    document.getElementById('screen-login').classList.remove('active');
+    document.getElementById('screen-app').classList.add('active');
+    const isA = user === 'apeksha';
+    const av = document.getElementById('header-avatar');
+    av.textContent = isA ? 'A' : 'V';
+    av.className = `header-avatar ${user}`;
+    av.style.cssText = isA
+        ? 'background:var(--lavender-light);color:var(--lavender-dark)'
+        : 'background:var(--sage-light);color:var(--sage)';
+    document.getElementById('header-name').textContent = isA ? 'Apeksha' : 'Ved';
+
+    // Set up peek toggle labels & avatars
+    peekMode = 'mine';
+    const myName    = isA ? 'Apeksha' : 'Ved';
+    const theirName = isA ? 'Ved' : 'Apeksha';
+    const myClass   = user;
+    const theirClass= isA ? 'ved' : 'apeksha';
+    document.getElementById('peek-mine-avatar').className  = `peek-avatar ${myClass}`;
+    document.getElementById('peek-mine-avatar').textContent = myName[0];
+    document.getElementById('peek-mine-label').textContent  = myName;
+    document.getElementById('peek-theirs-avatar').className  = `peek-avatar ${theirClass}`;
+    document.getElementById('peek-theirs-avatar').textContent = theirName[0];
+    document.getElementById('peek-theirs-label').textContent  = theirName;
+    document.getElementById('peek-mine').className   = 'peek-btn active-mine';
+    document.getElementById('peek-theirs').className = 'peek-btn';
+    document.getElementById('readonly-banner').style.display = 'none';
+
+    renderAll();
+}
+function logout() {
+    currentUser = null;
+    localStorage.removeItem('pact_user');
+    document.getElementById('screen-app').classList.remove('active');
+    document.getElementById('screen-login').classList.add('active');
+}
+
+// ========== NAVIGATION ==========
+function showPage(name, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(`page-${name}`).classList.add('active');
+    btn.classList.add('active');
+    if (name !== 'checkin') { peekMode = 'mine'; }
+    if (name==='dashboard')  renderDashboard();
+    if (name==='checkin')    renderCheckin();
+    if (name==='history')    renderHistory();
+    if (name==='activities') renderActivities();
+}
+function renderAll() {
+    renderDashboard(); renderCheckin(); renderHistory(); renderActivities();
+}
+
+// ========== DASHBOARD ==========
+function renderDashboard() {
+    document.getElementById('days-left').textContent = daysLeft();
+    const cPct = combinedPct();
+    document.getElementById('combined-pct').textContent = cPct + '%';
+    document.getElementById('combined-bar').style.width = Math.min(cPct, 100) + '%';
+    const aE = totalEarned('apeksha'), vE = totalEarned('ved');
+    document.getElementById('combined-pts-label').textContent = `${aE} + ${vE} pts`;
+    const onTrack = isOnTrack();
+    document.getElementById('trip-text').textContent = onTrack
+        ? '🌴 July 13–19 trip — looking good!'
+        : '🏠 Need to push — house party territory';
+    const pill = document.getElementById('trip-pill');
+    pill.textContent = onTrack ? 'On Track' : 'Off Track';
+    pill.className = `trip-pill ${onTrack ? 'on-track' : 'off-track'}`;
+    const aPct = userPct('apeksha'), vPct = userPct('ved');
+    document.getElementById('apeksha-pct').textContent = aPct + '%';
+    document.getElementById('ved-pct').textContent = vPct + '%';
+    document.getElementById('apeksha-pts').textContent = aE + ' pts earned';
+    document.getElementById('ved-pts').textContent = vE + ' pts earned';
+    // Category grid — show current user's own activities breakdown
+    const today = todayStr();
+    const dayLog = (logs[currentUser]||{})[today] || {};
+    const myActs = acts(currentUser);
+    document.getElementById('category-grid').innerHTML = Object.keys(CATS).map(cat => {
+        const catActs = myActs.filter(a => a.category === cat);
+        const poss = catActs.reduce((s,a) => s+a.points, 0);
+        const earn = catActs.reduce((s,a) => s+(dayLog[a.id]?a.points:0), 0);
+        const pct  = poss ? Math.round(earn/poss*100) : 0;
+        return `<div class="category-card">
+            <div class="cat-icon ${cat}">${CATS[cat].emoji}</div>
+            <div class="cat-name">${CATS[cat].label}</div>
+            <div class="cat-progress ${cat}">${poss ? pct+'%' : '—'}</div>
+            <div class="cat-bar"><div class="cat-bar-fill ${cat}" style="width:${pct}%"></div></div>
+        </div>`;
+    }).join('');
+}
+
+// ========== CHECK-IN ==========
+function renderCheckin() {
+    const today = todayStr();
+    const d = new Date();
+    document.getElementById('checkin-date').textContent =
+        d.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    document.getElementById('checkin-sub').textContent =
+        `Logging as ${currentUser === 'apeksha' ? 'Apeksha' : 'Ved'}`;
+    const vu = viewedUser();
+    const isReadonly = peekMode === 'theirs';
+    if (!logs[currentUser]) logs[currentUser] = {};
+    if (!logs[currentUser][today]) logs[currentUser][today] = {};
+    const dayLog = (logs[vu]||{})[today] || {};
+    const myActs = acts(vu);
+    const possible = totalPossiblePerDay(vu);
+    const earned = myActs.reduce((s,a) => s+(dayLog[a.id]?a.points:0), 0);
+    document.getElementById('today-pts').textContent = earned;
+    document.getElementById('today-max').textContent  = `/ ${possible}`;
+    document.getElementById('score-label').textContent = isReadonly
+        ? `${otherName()}'s Points Today`
+        : 'Today\'s Points';
+    let html = '';
+    Object.keys(CATS).forEach(cat => {
+        const catActs = myActs.filter(a => a.category === cat);
+        if (!catActs.length) return;
+        const cEarn = catActs.reduce((s,a) => s+(dayLog[a.id]?a.points:0), 0);
+        const cPoss = catActs.reduce((s,a) => s+a.points, 0);
+        html += `<div class="category-section">
+            <div class="cat-section-header">
+                <div class="cat-badge ${cat}">${CATS[cat].emoji}</div>
+                <div class="cat-section-name">${CATS[cat].label}</div>
+                <div class="cat-section-score">${cEarn}/${cPoss}</div>
+            </div>
+            ${catActs.map(a => {
+                const done = !!dayLog[a.id];
+                const clickHandler = isReadonly ? '' : `onclick="toggleAct('${a.id}')"`;
+                return `<div class="activity-item ${cat} ${done?'done':''} ${isReadonly?'readonly':''}" ${clickHandler}>
+                    <div class="activity-cb">${done?'✓':''}</div>
+                    <div class="activity-info">
+                        <div class="activity-name">${a.name}</div>
+                        <div><span class="freq-tag">${a.frequency}</span></div>
+                    </div>
+                    <div class="activity-pts">${a.points}pt</div>
+                </div>`;
+            }).join('')}
+        </div>`;
+    });
+    document.getElementById('checkin-body').innerHTML = html;
+}
+
+function toggleAct(id) {
+    const today = todayStr();
+    if (!logs[currentUser][today]) logs[currentUser][today] = {};
+    const was = logs[currentUser][today][id];
+    const newVal = !was;
+    logs[currentUser][today][id] = newVal;
+    cacheLocally();
+    syncLog(currentUser, today, id, newVal); // async Supabase sync
+    if (newVal) {
+        const possible = totalPossiblePerDay(currentUser);
+        const earned = acts(currentUser).reduce((s,a) => s+(logs[currentUser][today][a.id]?a.points:0), 0);
+        if (earned === possible) celebrate('🎉 Perfect Day!');
+    }
+    renderCheckin();
+    renderDashboard();
+}
+
+function celebrate(text) {
+    const el = document.createElement('div');
+    el.className = 'celebration';
+    el.innerHTML = `<div class="celebration-inner">${text}</div>`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2400);
+}
+
+// ========== HISTORY ==========
+function renderHistory() {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    let weekHTML = '';
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(startOfWeek); d.setDate(startOfWeek.getDate()+i);
+        const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const isFuture = d > today;
+        const isToday  = ds === todayStr();
+        let cls = 'future';
+        if (!isFuture) {
+            const pct = earnedOnDate(currentUser, ds) / (totalPossiblePerDay(currentUser)||1) * 100;
+            cls = pct >= 80 ? 'high' : pct >= 50 ? 'medium' : pct > 0 ? 'low' : 'none';
+        }
+        if (isToday) cls = 'today';
+        weekHTML += `<div class="week-day">
+            <div class="week-day-label">${days[i]}</div>
+            <div class="week-dot ${cls}">${d.getDate()}</div>
+        </div>`;
+    }
+    document.getElementById('week-grid').innerHTML = weekHTML;
+
+    const allDates = new Set([
+        ...Object.keys(logs.apeksha||{}),
+        ...Object.keys(logs.ved||{})
+    ]);
+    const sorted = [...allDates].sort((a,b) => b.localeCompare(a)).slice(0,21);
+    if (!sorted.length) {
+        document.getElementById('history-list').innerHTML = `<div class="empty-state">
+            <div class="empty-icon">📅</div>
+            <div class="empty-text">No history yet. Start checking in!</div>
+        </div>`;
+        return;
+    }
+    document.getElementById('history-list').innerHTML = sorted.map(ds => {
+        const d = new Date(ds+'T00:00:00');
+        const aE = earnedOnDate('apeksha',ds);
+        const vE = earnedOnDate('ved',ds);
+        return `<div class="history-entry">
+            <div>
+                <div class="history-day">${d.toLocaleDateString('en-IN',{weekday:'short'})}</div>
+                <div class="history-date">${d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
+            </div>
+            <div class="history-scores">
+                <div class="hsc">
+                    <div class="hsc-label">A</div>
+                    <div class="hsc-val apeksha">${aE}</div>
+                </div>
+                <div class="history-sep">·</div>
+                <div class="hsc">
+                    <div class="hsc-label">V</div>
+                    <div class="hsc-val ved">${vE}</div>
+                </div>
+                <div class="history-possible">A:${totalPossiblePerDay('apeksha')} V:${totalPossiblePerDay('ved')}</div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ========== ACTIVITIES ==========
+function renderActivities() {
+    const myActs = acts(currentUser);
+    const userName = currentUser === 'apeksha' ? 'Apeksha' : 'Ved';
+    let html = `<div style="font-size:11px;color:var(--text-muted);margin-bottom:16px;letter-spacing:1px;text-transform:uppercase;">
+        ${userName}'s Activities · ${myActs.length} total · ${totalPossiblePerDay(currentUser)} pts/day
+    </div>`;
+    Object.keys(CATS).forEach(cat => {
+        const catActs = myActs.filter(a => a.category === cat);
+        if (!catActs.length) return;
+        html += `<div class="manage-cat-header">
+            <div class="cat-badge ${cat}">${CATS[cat].emoji}</div>
+            <div class="cat-section-name">${CATS[cat].label}</div>
+        </div>
+        ${catActs.map(a => `<div class="manage-item">
+            <div class="manage-dot ${cat}"></div>
+            <div class="manage-info">
+                <div class="manage-name">${a.name}</div>
+                <div class="manage-meta">${a.frequency} · ${a.points} pts</div>
+            </div>
+            <div class="manage-btns">
+                <button class="icon-btn" onclick="openEditModal('${a.id}')">✏️</button>
+                <button class="icon-btn del" onclick="deleteAct('${a.id}')">🗑</button>
+            </div>
+        </div>`).join('')}
+        <div class="spacer"></div>`;
+    });
+    if (!myActs.length) {
+        html += `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No activities yet — add your first one!</div></div>`;
+    }
+    document.getElementById('activities-by-cat').innerHTML = html;
+}
+
+// ========== MODAL ==========
+let editId = null;
+function openAddModal() {
+    editId = null;
+    document.getElementById('modal-title').textContent = 'Add Activity';
+    document.getElementById('form-name').value = '';
+    document.getElementById('form-points').value = '';
+    document.getElementById('form-category').value = 'mental';
+    document.getElementById('form-frequency').value = 'daily';
+    document.getElementById('activity-modal').classList.add('active');
+}
+function openEditModal(id) {
+    const act = activities[currentUser].find(a => a.id === id);
+    if (!act) return;
+    editId = id;
+    document.getElementById('modal-title').textContent = 'Edit Activity';
+    document.getElementById('form-name').value = act.name;
+    document.getElementById('form-points').value = act.points;
+    document.getElementById('form-category').value = act.category;
+    document.getElementById('form-frequency').value = act.frequency;
+    document.getElementById('activity-modal').classList.add('active');
+}
+function closeModal() {
+    document.getElementById('activity-modal').classList.remove('active');
+    editId = null;
+}
+function saveActivity() {
+    const name = document.getElementById('form-name').value.trim();
+    const cat  = document.getElementById('form-category').value;
+    const freq = document.getElementById('form-frequency').value;
+    const pts  = parseInt(document.getElementById('form-points').value);
+    if (!name || !pts || isNaN(pts)) { alert('Please fill in all fields'); return; }
+    let actObj;
+    if (editId) {
+        const idx = activities[currentUser].findIndex(a => a.id === editId);
+        if (idx > -1) {
+            activities[currentUser][idx] = {...activities[currentUser][idx], name, category:cat, frequency:freq, points:pts};
+            actObj = activities[currentUser][idx];
+        }
+    } else {
+        actObj = {id:'act_'+Date.now(), name, category:cat, frequency:freq, points:pts};
+        activities[currentUser].push(actObj);
+    }
+    cacheLocally();
+    if (actObj) syncActivity(currentUser, actObj); // async Supabase sync
+    closeModal();
+    renderActivities(); renderCheckin(); renderDashboard();
+}
+function deleteAct(id) {
+    if (!confirm('Remove this activity?')) return;
+    activities[currentUser] = activities[currentUser].filter(a => a.id !== id);
+    cacheLocally();
+    deleteActivityFromDb(currentUser, id); // async Supabase sync
+    renderActivities(); renderCheckin(); renderDashboard();
+}
+document.getElementById('activity-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+// ========== INIT ==========
+(async () => {
+    await loadData();
+    document.getElementById('screen-loading').style.display = 'none';
+    const saved = localStorage.getItem('pact_user');
+    if (saved) login(saved);
+})();
+</script>
+</body>
+</html>
