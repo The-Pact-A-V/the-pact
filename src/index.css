@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  /* surfaces */
+  --color-cream: #FBF8F0;
+  --color-surface: #FFFFFF;
+  --color-paper: #FDFAF2;
+  --color-line: #EFE9DA;
+  --color-line-strong: #DCD3BD;
+
+  /* pastels for category-tinted cards */
+  --color-peach: #FFE9D6;
+  --color-peach-deep: #FFC9A0;
+  --color-lavender: #E8DFF8;
+  --color-lavender-deep: #C9BDED;
+  --color-sage: #DBEBDC;
+  --color-sage-deep: #BAD6BE;
+  --color-pink: #FFD7E4;
+  --color-pink-deep: #FBADC2;
+  --color-butter: #FFF3C2;
+  --color-butter-deep: #F5DB73;
+
+  /* text */
+  --color-ink: #1A1814;
+  --color-ink-soft: #3A342B;
+  --color-muted: #7A7062;
+  --color-faint: #B0A693;
+
+  /* identity */
+  --color-apeksha: #7B6FB8;
+  --color-ved: #5A8C66;
+
+  /* accents */
+  --color-coral: #FF8C5A;
+  --color-coral-deep: #E26A38;
+  --color-gold: #F5C24A;
+  --color-rose: #D8869C;
+
+  /* category tokens */
+  --color-mental: #7B6FB8;
+  --color-mental-bg: #E8DFF8;
+  --color-physical: #5A8C66;
+  --color-physical-bg: #DBEBDC;
+  --color-spiritual: #C97E54;
+  --color-spiritual-bg: #FFE9D6;
+  --color-material: #B85A78;
+  --color-material-bg: #FFD7E4;
+
+  /* fonts */
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+
+  /* radii */
+  --radius-pill: 100px;
+  --radius-card: 18px;
+  --radius-hero: 22px;
+}
+
+html, body, #root {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100svh;
+}
+
+body { margin: 0; }
