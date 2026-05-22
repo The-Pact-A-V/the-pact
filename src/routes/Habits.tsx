@@ -1,28 +1,62 @@
 import { Link } from 'react-router-dom'
-import { Trash2 } from 'lucide-react'
+import { Check, Trash2 } from 'lucide-react'
 import BottomNav from '@/components/BottomNav'
 import { CATEGORIES, DIFFICULTY_TIERS } from '@/lib/constants'
 import { useActivities, deleteActivity } from '@/hooks/useActivities'
+import { useDailyLogs, toggleLog, isTicked, earnedOnDate } from '@/hooks/useDailyLogs'
 import { useAuth } from '@/store/auth'
+import { todayStr, cn } from '@/lib/utils'
 import type { Activity, Category, Difficulty } from '@/types'
 
 function difficultyEmoji(points: Difficulty) {
   return DIFFICULTY_TIERS.find((t) => t.points === points)?.emoji ?? '💧'
 }
 
-function HabitRow({ activity, onDelete }: { activity: Activity; onDelete: () => void }) {
+interface HabitRowProps {
+  activity: Activity
+  ticked: boolean
+  onToggle: () => void
+  onDelete: () => void
+}
+
+function HabitRow({ activity, ticked, onToggle, onDelete }: HabitRowProps) {
   return (
-    <div className="flex items-center justify-between bg-white rounded-card p-3.5 border border-line">
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <span className="text-xl shrink-0">{difficultyEmoji(activity.points)}</span>
-        <div className="min-w-0">
-          <p className="font-medium text-ink truncate">{activity.name}</p>
-          <p className="text-[11px] text-muted">+{activity.points} pts · daily</p>
-        </div>
+    <div
+      className={cn(
+        'flex items-center gap-3 rounded-card p-3 border transition',
+        ticked ? 'bg-sage border-sage-deep' : 'bg-white border-line'
+      )}
+    >
+      <button
+        onClick={onToggle}
+        aria-label={ticked ? `Untick ${activity.name}` : `Tick ${activity.name}`}
+        className={cn(
+          'w-9 h-9 rounded-full flex items-center justify-center border-2 transition shrink-0 active:scale-90',
+          ticked
+            ? 'bg-ved border-ved text-white'
+            : 'bg-white border-line-strong text-transparent hover:border-ved'
+        )}
+      >
+        <Check size={18} strokeWidth={3} />
+      </button>
+
+      <div className="flex-1 min-w-0">
+        <p
+          className={cn(
+            'font-medium truncate',
+            ticked ? 'text-ink/70 line-through decoration-ved/40' : 'text-ink'
+          )}
+        >
+          {activity.name}
+        </p>
+        <p className="text-[11px] text-muted">
+          {difficultyEmoji(activity.points)} +{activity.points} pts · daily
+        </p>
       </div>
+
       <button
         onClick={onDelete}
-        className="ml-2 p-2 text-faint hover:text-material transition shrink-0"
+        className="p-2 text-faint hover:text-material transition shrink-0"
         aria-label={`Delete ${activity.name}`}
       >
         <Trash2 size={16} />
@@ -33,7 +67,21 @@ function HabitRow({ activity, onDelete }: { activity: Activity; onDelete: () => 
 
 export default function Habits() {
   const user = useAuth((s) => s.user) ?? 'apeksha'
+  const today = todayStr()
   const { activities, loading } = useActivities(user)
+  const { logs } = useDailyLogs(user)
+
+  const earned = earnedOnDate(logs, today)
+  const possible = activities.reduce((s, a) => s + a.points, 0)
+
+  async function handleToggle(activity: Activity) {
+    const currently = isTicked(logs, today, activity.id)
+    try {
+      await toggleLog(user, today, activity.id, !currently, activity.points)
+    } catch (err) {
+      console.warn(err)
+    }
+  }
 
   async function handleDelete(activityId: string, name: string) {
     if (!confirm(`Remove "${name}"?`)) return
@@ -52,9 +100,11 @@ export default function Habits() {
         <div>
           <p className="text-[11px] uppercase tracking-[0.2em] text-muted">habits</p>
           <h1 className="font-display text-4xl text-ink mt-1">Today</h1>
-          <p className="text-xs text-muted mt-1">
-            {loading ? 'loading…' : `${activities.length} ${activities.length === 1 ? 'habit' : 'habits'}`}
-          </p>
+          {!loading && activities.length > 0 && (
+            <p className="text-xs text-muted mt-1">
+              {earned} <span className="text-faint">/ {possible}</span> pts earned today
+            </p>
+          )}
         </div>
         <Link
           to="/add-habit"
@@ -98,6 +148,8 @@ export default function Habits() {
                     <HabitRow
                       key={a.id}
                       activity={a}
+                      ticked={isTicked(logs, today, a.id)}
+                      onToggle={() => handleToggle(a)}
                       onDelete={() => handleDelete(a.id, a.name)}
                     />
                   ))}
