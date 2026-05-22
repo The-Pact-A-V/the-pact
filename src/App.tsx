@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import RequirePact from '@/components/RequirePact'
 import FloatingHearts from '@/components/FloatingHearts'
 import BuzzListener from '@/components/BuzzListener'
+import MilestoneOverlay from '@/components/MilestoneOverlay'
+import MilestoneWatcher from '@/components/MilestoneWatcher'
 
 import Login from '@/routes/Login'
 import Onboarding from '@/routes/Onboarding'
@@ -48,7 +50,9 @@ export default function App() {
   return (
     <>
       <BuzzListener />
+      <MilestoneWatcher />
       <FloatingHearts />
+      <MilestoneOverlay />
       <Routes>
       {/* Auth + onboarding */}
       <Route path="/" element={<Login />} />
