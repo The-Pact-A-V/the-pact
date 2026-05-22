@@ -4,9 +4,7 @@ import JarSVG from '@/components/JarSVG'
 export default function Onboarding() {
   return (
     <div className="min-h-svh px-7 py-12 flex flex-col items-center text-center">
-      <p className="text-[11px] uppercase tracking-[0.3em] text-muted mb-3">
-        how it works
-      </p>
+      <p className="text-[11px] uppercase tracking-[0.3em] text-muted mb-3">how it works</p>
       <h1 className="font-display text-4xl text-ink mb-8 leading-tight">
         a pact <em className="italic text-apeksha">in three parts</em>
       </h1>

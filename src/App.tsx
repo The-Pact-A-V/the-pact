@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import RequirePact from '@/components/RequirePact'
 
 import Login from '@/routes/Login'
 import Onboarding from '@/routes/Onboarding'
@@ -61,18 +62,18 @@ export default function App() {
       <Route path="/pact-wrapped" element={<PactWrapped />} />
 
       {/* Dashboard */}
-      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/dashboard" element={<RequirePact><Dashboard /></RequirePact>} />
       <Route path="/dashboard-empty" element={<DashboardEmpty />} />
 
       {/* Habits */}
-      <Route path="/habits" element={<Habits />} />
+      <Route path="/habits" element={<RequirePact><Habits /></RequirePact>} />
       <Route path="/habits-empty" element={<HabitsEmpty />} />
       <Route path="/habits-peek" element={<HabitsPeek />} />
       <Route path="/habits-past" element={<HabitsPast />} />
-      <Route path="/add-habit" element={<AddHabit />} />
+      <Route path="/add-habit" element={<RequirePact><AddHabit /></RequirePact>} />
 
       {/* Boards */}
-      <Route path="/boards" element={<Boards />} />
+      <Route path="/boards" element={<RequirePact><Boards /></RequirePact>} />
       <Route path="/boards-empty" element={<BoardsEmpty />} />
       <Route path="/board-new" element={<BoardNew />} />
       <Route path="/board/:id" element={<BoardDetail />} />
@@ -80,15 +81,15 @@ export default function App() {
       <Route path="/item/:id" element={<ItemDetail />} />
 
       {/* Buzzer */}
-      <Route path="/buzzer" element={<Buzzer />} />
+      <Route path="/buzzer" element={<RequirePact><Buzzer /></RequirePact>} />
       <Route path="/buzz-inbox" element={<BuzzInbox />} />
 
       {/* Ceremonies */}
-      <Route path="/weekly-review" element={<WeeklyReview />} />
+      <Route path="/weekly-review" element={<RequirePact><WeeklyReview /></RequirePact>} />
       <Route path="/milestone" element={<MilestoneScreen />} />
 
       {/* Settings */}
-      <Route path="/settings" element={<Settings />} />
+      <Route path="/settings" element={<RequirePact><Settings /></RequirePact>} />
       <Route path="/edit-profile" element={<EditProfile />} />
       <Route path="/history" element={<History />} />
       <Route path="/about" element={<About />} />
