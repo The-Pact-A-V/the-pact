@@ -34,7 +34,12 @@ function PhotoCard({ item }: { item: BoardItem }) {
   const c = item.content as unknown as PhotoContent
   return (
     <div className="rounded-card overflow-hidden bg-white shadow-sm break-inside-avoid mb-3">
-      <img src={c.url} alt={c.caption ?? ''} className="w-full block" />
+      <img
+        loading="lazy"
+        src={c.url}
+        alt={c.caption ?? ''}
+        className="w-full block bg-paper"
+      />
       <div className="p-2.5 flex items-center justify-between">
         {c.caption ? (
           <p className="text-xs text-ink truncate flex-1 mr-2">{c.caption}</p>

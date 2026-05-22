@@ -45,7 +45,7 @@ function ItemContent({ item }: { item: BoardItem }) {
       const c = item.content as unknown as PhotoContent
       return (
         <div className="rounded-hero overflow-hidden bg-white">
-          <img src={c.url} alt={c.caption ?? ''} className="w-full block" />
+          <img loading="lazy" src={c.url} alt={c.caption ?? ''} className="w-full block bg-paper" />
           {c.caption && <p className="p-4 text-sm font-display italic text-muted">{c.caption}</p>}
         </div>
       )

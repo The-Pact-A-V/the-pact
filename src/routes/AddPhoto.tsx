@@ -6,6 +6,7 @@ import { useBoard, gradientClasses } from '@/hooks/useBoards'
 import { addBoardItem } from '@/hooks/useBoardItems'
 import { uploadPhoto } from '@/lib/storage'
 import { stripUndefined } from '@/lib/firebase-helpers'
+import { formatBytes } from '@/lib/imageCompress'
 import { cn } from '@/lib/utils'
 
 export default function AddPhoto() {
@@ -106,9 +107,12 @@ export default function AddPhoto() {
         </div>
       ) : (
         <>
-          <div className="rounded-card overflow-hidden mb-4 border border-line">
+          <div className="rounded-card overflow-hidden mb-2 border border-line">
             <img src={previewUrl} alt="" className="w-full block" />
           </div>
+          <p className="text-[10px] text-faint mb-4">
+            original: {file ? formatBytes(file.size) : ''} · will be compressed to ~200–400 KB on upload
+          </p>
           <button
             onClick={() => {
               setFile(null)
@@ -138,7 +142,7 @@ export default function AddPhoto() {
         disabled={submitting || !file}
         className="w-full px-4 py-3.5 rounded-pill bg-coral text-white font-medium shadow-md shadow-coral/30 active:scale-[0.98] transition disabled:opacity-50"
       >
-        {submitting ? 'uploading…' : 'pin to board'}
+        {submitting ? 'compressing + uploading…' : 'pin to board'}
       </button>
     </div>
   )
