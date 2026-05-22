@@ -1,6 +1,6 @@
 import type { Frequency } from '@/types'
 
-const PACT_LENGTH_DAYS = 50
+export const DEFAULT_PACT_LENGTH_DAYS = 50
 
 export function isScheduledOn(freq: Frequency, date: Date): boolean {
   switch (freq.type) {
@@ -17,7 +17,7 @@ export function isScheduledOn(freq: Frequency, date: Date): boolean {
   }
 }
 
-export function occurrencesInPact(freq: Frequency, pactDays = PACT_LENGTH_DAYS): number {
+export function occurrencesInPact(freq: Frequency, pactDays = DEFAULT_PACT_LENGTH_DAYS): number {
   switch (freq.type) {
     case 'daily':
       return pactDays
