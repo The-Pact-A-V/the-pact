@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { Home, CheckSquare, Heart, Image, Settings as SettingsIcon } from 'lucide-react'
 
 const ITEMS = [
@@ -26,13 +26,13 @@ export default function BottomNav() {
         ))}
       </nav>
 
-      {/* Buzzer FAB — center-bottom, sits above the nav */}
-      <button
-        aria-label="Buzz partner"
+      <Link
+        to="/buzzer"
+        aria-label="Send a buzz"
         className="fixed bottom-14 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-coral text-white shadow-lg shadow-coral/30 flex items-center justify-center z-50 active:scale-95 transition"
       >
         <Heart size={24} fill="currentColor" />
-      </button>
+      </Link>
     </>
   )
 }

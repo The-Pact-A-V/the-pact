@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import RequirePact from '@/components/RequirePact'
+import FloatingHearts from '@/components/FloatingHearts'
+import BuzzListener from '@/components/BuzzListener'
 
 import Login from '@/routes/Login'
 import Onboarding from '@/routes/Onboarding'
@@ -44,7 +46,10 @@ import About from '@/routes/About'
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      <BuzzListener />
+      <FloatingHearts />
+      <Routes>
       {/* Auth + onboarding */}
       <Route path="/" element={<Login />} />
       <Route path="/onboarding" element={<Onboarding />} />
@@ -96,5 +101,6 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   )
 }
