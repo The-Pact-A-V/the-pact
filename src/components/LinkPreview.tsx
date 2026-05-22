@@ -52,7 +52,7 @@ function YoutubeCard({ content }: { content: LinkContent }) {
     <div className="rounded-card overflow-hidden bg-white border border-line shadow-sm break-inside-avoid mb-3">
       {thumb && (
         <div className="relative">
-          <img src={thumb} alt="" className="w-full block aspect-video object-cover" />
+          <img loading="lazy" src={thumb} alt="" className="w-full block aspect-video object-cover" />
           <span className="absolute inset-0 flex items-center justify-center">
             <span className="w-10 h-10 rounded-full bg-black/60 flex items-center justify-center">
               <Play size={18} className="text-white ml-0.5" fill="currentColor" />
@@ -72,7 +72,7 @@ function SpotifyCard({ content }: { content: LinkContent }) {
   return (
     <div className="rounded-card overflow-hidden bg-sage border border-sage-deep shadow-sm break-inside-avoid mb-3">
       {content.image && (
-        <img src={content.image} alt="" className="w-full block aspect-square object-cover" />
+        <img loading="lazy" src={content.image} alt="" className="w-full block aspect-square object-cover" />
       )}
       <div className="p-2.5">
         <SourceBadge url={content.url} />
@@ -83,10 +83,29 @@ function SpotifyCard({ content }: { content: LinkContent }) {
 }
 
 function InstagramCard({ content }: { content: LinkContent }) {
+  const embed = getInstagramEmbedUrl(content.url)
+  // Try the embed first; Instagram serves a thumbnail-only oembed iframe even when
+  // OG scraping fails. The poster (?) page shows the post media when available.
   return (
     <div className="rounded-card overflow-hidden bg-white border border-line shadow-sm break-inside-avoid mb-3">
-      {content.image && (
-        <img src={content.image} alt="" className="w-full block aspect-square object-cover" />
+      {content.image ? (
+        <img loading="lazy" src={content.image} alt="" className="w-full block aspect-square object-cover" />
+      ) : embed ? (
+        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-pink to-lavender">
+          <iframe
+            src={embed}
+            title="Instagram preview"
+            className="absolute -inset-x-2 -top-12 w-[calc(100%+1rem)] h-[180%] border-0 pointer-events-none"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-white/0 via-transparent to-white/0" />
+        </div>
+      ) : (
+        <div className="aspect-square bg-gradient-to-br from-pink to-lavender flex flex-col items-center justify-center text-center p-4">
+          <span className="text-3xl mb-2">📷</span>
+          <span className="text-[10px] font-medium uppercase tracking-wider text-material">Instagram</span>
+          <span className="text-[10px] text-ink-soft mt-1 italic font-display">tap to view</span>
+        </div>
       )}
       <div className="p-2.5">
         <SourceBadge url={content.url} />
@@ -97,18 +116,24 @@ function InstagramCard({ content }: { content: LinkContent }) {
 }
 
 function GenericCard({ content }: { content: LinkContent }) {
-  const label = sourceLabel(content.url)
   return (
     <div className="rounded-card overflow-hidden bg-white border border-line shadow-sm break-inside-avoid mb-3">
-      {content.image && (
-        <img src={content.image} alt="" className="w-full block aspect-video object-cover" />
+      {content.image ? (
+        <img loading="lazy" src={content.image} alt="" className="w-full block aspect-video object-cover" />
+      ) : (
+        <div className="aspect-video bg-gradient-to-br from-lavender to-cream flex items-center justify-center">
+          <span className="font-display italic text-2xl text-ink/40">{getHostname(content.url)}</span>
+        </div>
       )}
       <div className="p-2.5">
         <SourceBadge url={content.url} />
         {content.title ? (
           <p className="text-xs font-medium text-ink mt-1 line-clamp-2">{content.title}</p>
         ) : (
-          <p className="text-xs text-muted mt-1 truncate">{label}</p>
+          <p className="text-xs text-muted mt-1 truncate">{getHostname(content.url)}</p>
+        )}
+        {content.description && (
+          <p className="text-[10px] text-muted mt-1 line-clamp-2 italic font-display">{content.description}</p>
         )}
       </div>
     </div>
