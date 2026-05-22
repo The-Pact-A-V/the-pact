@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { ArrowLeft, Trash2 } from 'lucide-react'
 import { useActivePact, updateActivePact, abandonActivePact, dayNumberInPact, pactDurationDays } from '@/hooks/usePact'
+import { useBoards, gradientClasses } from '@/hooks/useBoards'
 import { cn, todayStr } from '@/lib/utils'
 
 const schema = z.object({
@@ -20,6 +21,8 @@ const TARGET_PRESETS = [70, 80, 90, 95, 100]
 export default function PactEdit() {
   const navigate = useNavigate()
   const { pact, loading } = useActivePact()
+  const { boards } = useBoards()
+  const [rewardBoardId, setRewardBoardId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
@@ -28,7 +31,10 @@ export default function PactEdit() {
   })
 
   useEffect(() => {
-    if (pact) reset({ name: pact.name, startDate: pact.startDate, endDate: pact.endDate, targetPct: pact.targetPct })
+    if (pact) {
+      reset({ name: pact.name, startDate: pact.startDate, endDate: pact.endDate, targetPct: pact.targetPct })
+      setRewardBoardId(pact.rewardBoardId)
+    }
   }, [pact, reset])
 
   if (loading) return <div className="min-h-svh p-6 text-muted italic font-display">loading…</div>
@@ -45,6 +51,7 @@ export default function PactEdit() {
         name: data.name,
         endDate: data.endDate,
         targetPct: data.targetPct,
+        rewardBoardId,
       }
       if (!startLocked) updates.startDate = data.startDate
       await updateActivePact(updates)
@@ -127,6 +134,40 @@ export default function PactEdit() {
             )
           })}
         </div>
+      </div>
+
+      <div className="mb-8">
+        <label className="text-[11px] uppercase tracking-[0.2em] text-muted">reward board</label>
+        <p className="text-xs text-faint italic font-display mt-0.5 mb-2">
+          the board this pact unlocks when you hit the target
+        </p>
+        {boards.length === 0 ? (
+          <div className="rounded-card border border-dashed border-line bg-paper p-4 text-center">
+            <p className="text-sm text-muted">no boards yet</p>
+            <Link to="/board-new" className="text-xs text-apeksha mt-1 inline-block">create one →</Link>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {boards.map((b) => {
+              const active = rewardBoardId === b.id
+              return (
+                <button
+                  key={b.id}
+                  type="button"
+                  onClick={() => setRewardBoardId(active ? null : b.id)}
+                  className={cn(
+                    'rounded-pill px-3 py-1.5 text-sm flex items-center gap-1.5 border-2 bg-gradient-to-br transition',
+                    gradientClasses(b.coverColor),
+                    active ? 'border-ink' : 'border-transparent opacity-60 hover:opacity-100'
+                  )}
+                >
+                  <span>{b.emoji}</span>
+                  <span className="truncate max-w-[120px]">{b.name}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {submitError && <p className="text-material text-sm mb-3">⚠️ {submitError}</p>}

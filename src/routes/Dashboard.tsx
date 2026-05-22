@@ -6,6 +6,7 @@ import Avatar from '@/components/Avatar'
 import { useAuth, userName } from '@/store/auth'
 import { useCombinedProgress } from '@/hooks/useCombinedProgress'
 import { useActivePact, dayNumberInPact, daysLeftForPact, pactDurationDays } from '@/hooks/usePact'
+import { useBoard, gradientClasses } from '@/hooks/useBoards'
 import { useActivities } from '@/hooks/useActivities'
 import { useDailyLogs, isTicked } from '@/hooks/useDailyLogs'
 import { CATEGORIES } from '@/lib/constants'
@@ -29,6 +30,7 @@ const CAT_INK: Record<Category, string> = {
 export default function Dashboard() {
   const user = useAuth((s) => s.user) ?? 'apeksha'
   const { pact } = useActivePact()
+  const { board: rewardBoard } = useBoard(pact?.rewardBoardId ?? null)
   const progress = useCombinedProgress()
   const { activities } = useActivities(user)
   const { logs } = useDailyLogs(user)
@@ -91,6 +93,28 @@ export default function Dashboard() {
           {progress.combinedEarned} pts of {progress.combinedPossible}
           {pact && ` · ${daysLeftForPact(pact)} days left`}
         </p>
+
+        {rewardBoard ? (
+          <Link
+            to={`/board/${rewardBoard.id}`}
+            className={cn(
+              'mt-3 rounded-pill bg-gradient-to-br px-4 py-2 flex items-center gap-2 shadow-sm active:scale-[0.97] transition',
+              gradientClasses(rewardBoard.coverColor)
+            )}
+          >
+            <span className="text-base">{rewardBoard.emoji}</span>
+            <span className="text-sm font-medium">
+              unlocks <em className="italic">{rewardBoard.name}</em>
+            </span>
+          </Link>
+        ) : pact ? (
+          <Link
+            to="/pact-edit"
+            className="mt-3 rounded-pill bg-paper border border-dashed border-line-strong px-4 py-1.5 text-xs text-muted hover:text-ink transition"
+          >
+            🎁 pick a reward board →
+          </Link>
+        ) : null}
       </div>
 
       <section className="mx-6 mt-8 grid grid-cols-2 gap-3">
