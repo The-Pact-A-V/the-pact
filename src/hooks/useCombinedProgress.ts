@@ -1,11 +1,13 @@
 import type { Activity } from '@/types'
 import { useActivities } from './useActivities'
 import { useDailyLogs, totalEarned } from './useDailyLogs'
+import { occurrencesInPact } from '@/lib/frequency'
 
-const PACT_LENGTH_DAYS = 50
-
-function sumPoints(activities: Activity[]): number {
-  return activities.reduce((s, a) => s + a.points, 0)
+function totalPossible(activities: Activity[]): number {
+  return activities.reduce(
+    (sum, a) => sum + a.points * occurrencesInPact(a.frequency),
+    0
+  )
 }
 
 export function useCombinedProgress() {
@@ -14,8 +16,8 @@ export function useCombinedProgress() {
   const aLogs = useDailyLogs('apeksha')
   const vLogs = useDailyLogs('ved')
 
-  const aPossible = sumPoints(a.activities) * PACT_LENGTH_DAYS
-  const vPossible = sumPoints(v.activities) * PACT_LENGTH_DAYS
+  const aPossible = totalPossible(a.activities)
+  const vPossible = totalPossible(v.activities)
   const aEarned = totalEarned(aLogs.logs)
   const vEarned = totalEarned(vLogs.logs)
 

@@ -1,5 +1,6 @@
-import StubScreen from '@/components/StubScreen'
+import { Navigate } from 'react-router-dom'
 
+// Legacy route — the peek experience now lives inline on /habits via a ?peek=true param.
 export default function HabitsPeek() {
-  return <StubScreen eyebrow="peek" title="Their habits" back="/habits" note="View-only — you can see their day but can't tick it." />
+  return <Navigate to="/habits?peek=true" replace />
 }
