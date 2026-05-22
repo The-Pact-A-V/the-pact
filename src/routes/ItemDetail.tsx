@@ -1,15 +1,15 @@
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, ExternalLink, Trash2 } from 'lucide-react'
+import { ArrowLeft, Trash2 } from 'lucide-react'
 import { useAuth, userName } from '@/store/auth'
 import { useBoard, gradientClasses } from '@/hooks/useBoards'
 import { useBoardItem, deleteBoardItem, useReactions, toggleReaction } from '@/hooks/useBoardItems'
 import Avatar from '@/components/Avatar'
+import LinkPreview, { type LinkContent } from '@/components/LinkPreview'
 import { cn } from '@/lib/utils'
 import type { BoardItem, UserId } from '@/types'
 
 interface NoteContent { text: string; color?: string; emoji?: string }
 interface PhotoContent { url: string; caption?: string }
-interface LinkContent { url: string; title?: string; source?: string; thumbnailUrl?: string }
 interface VoiceContent { audioUrl: string; durationSeconds?: number; caption?: string }
 
 const REACTION_PICKS = ['💜', '🔥', '😍', '🌊', '✨', '🥹']
@@ -52,23 +52,7 @@ function ItemContent({ item }: { item: BoardItem }) {
     }
     case 'link': {
       const c = item.content as unknown as LinkContent
-      return (
-        <a
-          href={c.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block rounded-hero bg-white border border-line p-5 hover:border-line-strong transition"
-        >
-          {c.source && (
-            <span className="text-[11px] uppercase tracking-wider text-muted">{c.source}</span>
-          )}
-          <p className="font-display text-xl text-ink mt-1">{c.title || c.url}</p>
-          <div className="flex items-center gap-1 text-xs text-muted mt-3">
-            <ExternalLink size={12} />
-            <span className="truncate">{c.url}</span>
-          </div>
-        </a>
-      )
+      return <LinkPreview content={c} variant="detail" />
     }
     case 'voice': {
       const c = item.content as unknown as VoiceContent

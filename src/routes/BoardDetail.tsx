@@ -2,6 +2,7 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import { ArrowLeft, MoreHorizontal, Plus, FileText, Camera, Link as LinkIcon, Mic } from 'lucide-react'
 import BottomNav from '@/components/BottomNav'
 import Avatar from '@/components/Avatar'
+import LinkPreview, { type LinkContent } from '@/components/LinkPreview'
 import { useBoard, gradientClasses } from '@/hooks/useBoards'
 import { useBoardItems } from '@/hooks/useBoardItems'
 import { cn } from '@/lib/utils'
@@ -9,7 +10,6 @@ import type { BoardItem } from '@/types'
 
 interface NoteContent { text: string; color?: string; emoji?: string }
 interface PhotoContent { url: string; caption?: string }
-interface LinkContent { url: string; title?: string; thumbnailUrl?: string; source?: string }
 interface VoiceContent { audioUrl: string; durationSeconds?: number; caption?: string }
 
 function NoteCard({ item }: { item: BoardItem }) {
@@ -50,18 +50,11 @@ function PhotoCard({ item }: { item: BoardItem }) {
 function LinkCard({ item }: { item: BoardItem }) {
   const c = item.content as unknown as LinkContent
   return (
-    <div className="rounded-card bg-white border border-line shadow-sm overflow-hidden break-inside-avoid mb-3">
-      {c.thumbnailUrl && <img src={c.thumbnailUrl} alt="" className="w-full block" />}
-      <div className="p-3">
-        {c.source && (
-          <span className="text-[10px] uppercase tracking-wider text-muted">{c.source}</span>
-        )}
-        <p className="text-sm font-medium text-ink mt-0.5">{c.title || c.url}</p>
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-[10px] text-faint truncate flex-1 mr-2">{c.url}</span>
-          <Avatar user={item.addedBy} size="sm" />
-        </div>
-      </div>
+    <div className="relative">
+      <LinkPreview content={c} variant="card" />
+      <span className="absolute top-2 right-2">
+        <Avatar user={item.addedBy} size="sm" />
+      </span>
     </div>
   )
 }
