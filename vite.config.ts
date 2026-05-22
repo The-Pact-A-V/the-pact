@@ -12,8 +12,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'icons/*.png'],
       manifest: {
-        name: 'The Pact — A & V',
-        short_name: 'The Pact',
+        name: 'The Pact (v2) — A & V',
+        short_name: 'Pact β',
         description: "95% together or it doesn't count.",
         start_url: '/',
         scope: '/',
