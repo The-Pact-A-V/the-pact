@@ -5,9 +5,10 @@ import { auth, db } from '@/lib/firebase'
 import { useAuth } from '@/store/auth'
 import type { UserId } from '@/types'
 
-// Boots Firebase Auth on app start, signs in anonymously if needed, and
-// reconciles the Firebase UID with the logical user identity ('apeksha' | 'ved')
-// stored at /uid_map/{firebaseUid}.
+const BOOT_TIMEOUT_MS = 10_000
+
+// Boots Firebase Auth on app start. Tolerant: hard timeout at 10s so the
+// "signing in…" splash can never get stuck.
 export function useFirebaseAuthBoot(): { ready: boolean; error: string | null } {
   const setUser = useAuth((s) => s.setUser)
   const [ready, setReady] = useState(false)
@@ -15,17 +16,32 @@ export function useFirebaseAuthBoot(): { ready: boolean; error: string | null } 
 
   useEffect(() => {
     let unsubMap: (() => void) | undefined
+    let timedOut = false
+
+    // Hard timeout — surface a recoverable error if Firebase never resolves
+    const timeout = window.setTimeout(() => {
+      timedOut = true
+      setError('still trying… check your connection then refresh')
+      setReady(true)
+    }, BOOT_TIMEOUT_MS)
+
+    const finishReady = () => {
+      if (timedOut) return
+      window.clearTimeout(timeout)
+      setReady(true)
+    }
 
     const unsubAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (timedOut) return
+
       if (!firebaseUser) {
-        // No session — attempt anonymous sign-in. Once successful, this
-        // callback fires again with the new user.
+        // No session — sign in anonymously. onAuthStateChanged fires again
+        // once it resolves.
         try {
           await signInAnonymously(auth)
         } catch (err) {
-          // Most likely: Anonymous Auth isn't enabled in Firebase Console yet.
           setError(err instanceof Error ? err.message : 'sign-in failed')
-          setReady(true) // surface the error UI; don't block the app forever
+          finishReady()
         }
         return
       }
@@ -33,19 +49,24 @@ export function useFirebaseAuthBoot(): { ready: boolean; error: string | null } 
       // We have a Firebase UID. Listen for our /uid_map entry.
       unsubMap?.()
       const mapRef = ref(db, `uid_map/${firebaseUser.uid}`)
-      unsubMap = onValue(mapRef, (snap) => {
-        const logical = snap.val() as UserId | null
-        setUser(logical === 'apeksha' || logical === 'ved' ? logical : null)
-        setReady(true)
-      }, () => {
-        // Permission denied while reading — DB rules require uid_map entry to
-        // read other paths. Treat as "not claimed yet" so Login shows.
-        setUser(null)
-        setReady(true)
-      })
+      unsubMap = onValue(
+        mapRef,
+        (snap) => {
+          const logical = snap.val() as UserId | null
+          setUser(logical === 'apeksha' || logical === 'ved' ? logical : null)
+          finishReady()
+        },
+        () => {
+          // Permission denied or transient — treat as "not claimed yet" so
+          // Login can show. Don't get stuck.
+          setUser(null)
+          finishReady()
+        }
+      )
     })
 
     return () => {
+      window.clearTimeout(timeout)
       unsubAuth()
       unsubMap?.()
     }
