@@ -36,6 +36,7 @@ import BoardEdit from '@/routes/BoardEdit'
 import ItemDetail from '@/routes/ItemDetail'
 import AddNote from '@/routes/AddNote'
 import AddPhoto from '@/routes/AddPhoto'
+import AddLink from '@/routes/AddLink'
 
 import Buzzer from '@/routes/Buzzer'
 import BuzzInbox from '@/routes/BuzzInbox'
@@ -92,6 +93,7 @@ export default function App() {
       <Route path="/item/:boardId/:id" element={<RequirePact><ItemDetail /></RequirePact>} />
       <Route path="/add-note/:boardId" element={<RequirePact><AddNote /></RequirePact>} />
       <Route path="/add-photo/:boardId" element={<RequirePact><AddPhoto /></RequirePact>} />
+      <Route path="/add-link/:boardId" element={<RequirePact><AddLink /></RequirePact>} />
 
       {/* Buzzer */}
       <Route path="/buzzer" element={<RequirePact><Buzzer /></RequirePact>} />
