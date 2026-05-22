@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/store/auth'
 import { useActivePact, hasJoined } from '@/hooks/usePact'
+import { claimIdentity } from '@/hooks/useFirebaseAuthBoot'
 import type { UserId } from '@/types'
 
 const USERS: Array<{ id: UserId; name: string; last: string; color: string }> = [
@@ -11,21 +12,30 @@ const USERS: Array<{ id: UserId; name: string; last: string; color: string }> = 
 
 export default function Login() {
   const navigate = useNavigate()
-  const setUser = useAuth((s) => s.setUser)
-  const [picked, setPicked] = useState<UserId | null>(null)
+  const user = useAuth((s) => s.user)
+  const [picked, setPicked] = useState<UserId | null>(user)
+  const [error, setError] = useState<string | null>(null)
   const { pact, loading } = useActivePact()
 
-  // Once a user is picked AND the pact state is loaded, route to the right place.
+  // If we already know who you are AND pact state has loaded, route on.
   useEffect(() => {
-    if (!picked || loading) return
+    if (!user || loading) return
     if (!pact) navigate('/onboarding', { replace: true })
-    else if (!hasJoined(pact, picked)) navigate('/pact-joining', { replace: true })
+    else if (!hasJoined(pact, user)) navigate('/pact-joining', { replace: true })
     else navigate('/dashboard', { replace: true })
-  }, [picked, pact, loading, navigate])
+  }, [user, pact, loading, navigate])
 
-  function pickUser(id: UserId) {
-    setUser(id)
+  async function pickUser(id: UserId) {
     setPicked(id)
+    setError(null)
+    try {
+      await claimIdentity(id)
+      // AuthBoot subscribes to /uid_map/{uid} and will populate useAuth.user;
+      // the useEffect above takes over and routes us forward.
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'sign-in failed')
+      setPicked(null)
+    }
   }
 
   return (
@@ -35,7 +45,7 @@ export default function Login() {
       <p className="font-display italic text-base text-muted mb-12">Apeksha &amp; Ved</p>
 
       <p className="text-[11px] uppercase tracking-[0.2em] text-muted mb-5">
-        {picked ? 'finding your pact…' : "who's checking in?"}
+        {picked ? 'signing you in…' : "who's checking in?"}
       </p>
 
       <div className="flex flex-col gap-3.5 w-full max-w-[300px]">
@@ -56,6 +66,10 @@ export default function Login() {
           </button>
         ))}
       </div>
+
+      {error && (
+        <p className="text-material text-xs mt-6 max-w-xs">⚠️ {error}</p>
+      )}
 
       <p className="font-display italic text-sm text-muted mt-12">
         "95% together or it doesn't count." 🌴

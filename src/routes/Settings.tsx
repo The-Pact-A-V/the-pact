@@ -3,6 +3,7 @@ import { ChevronRight, LogOut } from 'lucide-react'
 import BottomNav from '@/components/BottomNav'
 import Avatar from '@/components/Avatar'
 import { useAuth, userName } from '@/store/auth'
+import { releaseIdentity } from '@/hooks/useFirebaseAuthBoot'
 
 interface RowProps {
   to?: string
@@ -48,7 +49,12 @@ export default function Settings() {
   const user = useAuth((s) => s.user) ?? 'apeksha'
   const logout = useAuth((s) => s.logout)
 
-  function handleLogout() {
+  async function handleLogout() {
+    try {
+      await releaseIdentity()
+    } catch {
+      // ignore
+    }
     logout()
     navigate('/')
   }
