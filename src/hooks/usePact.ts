@@ -94,3 +94,42 @@ export function dayNumberInPact(pact: Pact): number {
 export function hasJoined(pact: Pact, user: UserId): boolean {
   return user === 'apeksha' ? pact.pactJoinedByA : pact.pactJoinedByV
 }
+
+export function useArchivedPacts() {
+  const [pacts, setPacts] = useState<Pact[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const r = ref(db, 'pacts/archive')
+    const unsubscribe = onValue(r, (snap) => {
+      const data = (snap.val() as Record<string, Pact> | null) ?? {}
+      const list = Object.values(data).sort((a, b) => (b.closedAt ?? 0) - (a.closedAt ?? 0))
+      setPacts(list)
+      setLoading(false)
+    })
+    return () => unsubscribe()
+  }, [])
+
+  return { pacts, loading }
+}
+
+export function useArchivedPact(pactId: string | null) {
+  const [pact, setPact] = useState<Pact | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!pactId) {
+      setPact(null)
+      setLoading(false)
+      return
+    }
+    const r = ref(db, `pacts/archive/${pactId}`)
+    const unsubscribe = onValue(r, (snap) => {
+      setPact((snap.val() as Pact) ?? null)
+      setLoading(false)
+    })
+    return () => unsubscribe()
+  }, [pactId])
+
+  return { pact, loading }
+}
