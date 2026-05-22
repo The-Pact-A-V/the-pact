@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Calendar } from 'lucide-react'
 import BottomNav from '@/components/BottomNav'
 import JarSVG from '@/components/JarSVG'
 import Avatar from '@/components/Avatar'
@@ -43,6 +44,9 @@ export default function Dashboard() {
     return { possible, earned, count: acts.length }
   }
 
+  const dow = todayDate.getDay()
+  const showSundayBanner = dow === 0 || dow === 1 // Sun or Mon
+
   return (
     <div className="min-h-svh pb-28">
       <header className="px-6 pt-8 pb-2 flex items-center justify-between">
@@ -61,6 +65,20 @@ export default function Dashboard() {
         </div>
         <Avatar user={user} />
       </header>
+
+      {showSundayBanner && (
+        <Link
+          to="/weekly-review"
+          className="mx-6 mt-3 rounded-card bg-pink border border-pink-deep p-3 flex items-center gap-2 active:scale-[0.99] transition"
+        >
+          <Calendar size={16} className="text-material shrink-0" />
+          <span className="text-sm flex-1">
+            <span className="font-medium">{dow === 0 ? 'sunday' : 'monday'}</span>
+            <span className="text-muted"> · your weekly review is ready</span>
+          </span>
+          <span className="text-xs text-material font-medium">view →</span>
+        </Link>
+      )}
 
       <div className="flex flex-col items-center mt-6">
         <JarSVG pct={progress.combinedPct} size={200} showLabel />
