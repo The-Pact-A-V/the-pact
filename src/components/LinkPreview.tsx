@@ -9,6 +9,15 @@ import {
   sourceLabel,
   getHostname,
 } from '@/lib/links'
+
+function realTitle(content: LinkContent): string | undefined {
+  // Defensive: a few legacy pins were saved with title === url. Hide those so
+  // the URL never doubles up under the source badge.
+  if (!content.title) return undefined
+  if (content.title === content.url) return undefined
+  if (content.title.startsWith('http://') || content.title.startsWith('https://')) return undefined
+  return content.title
+}
 import { cn } from '@/lib/utils'
 
 export interface LinkContent {
@@ -62,7 +71,7 @@ function YoutubeCard({ content }: { content: LinkContent }) {
       )}
       <div className="p-2.5">
         <SourceBadge url={content.url} />
-        {content.title && <p className="text-xs font-medium text-ink mt-1 line-clamp-2">{content.title}</p>}
+        {realTitle(content) && <p className="text-xs font-medium text-ink mt-1 line-clamp-2">{realTitle(content)}</p>}
       </div>
     </div>
   )
@@ -76,40 +85,33 @@ function SpotifyCard({ content }: { content: LinkContent }) {
       )}
       <div className="p-2.5">
         <SourceBadge url={content.url} />
-        {content.title && <p className="text-xs font-medium text-ink mt-1 line-clamp-2">{content.title}</p>}
+        {realTitle(content) && <p className="text-xs font-medium text-ink mt-1 line-clamp-2">{realTitle(content)}</p>}
       </div>
     </div>
   )
 }
 
 function InstagramCard({ content }: { content: LinkContent }) {
-  const embed = getInstagramEmbedUrl(content.url)
-  // Try the embed first; Instagram serves a thumbnail-only oembed iframe even when
-  // OG scraping fails. The poster (?) page shows the post media when available.
+  // Don't try the iframe in card view — Instagram serves wildly inconsistent
+  // content (sometimes the post media, sometimes a tiny "open in app" stub
+  // that looks broken). Show a designed placeholder; the iframe only lives
+  // in the detail view, where it has room to render properly.
   return (
     <div className="rounded-card overflow-hidden bg-white border border-line shadow-sm break-inside-avoid mb-3">
       {content.image ? (
         <img loading="lazy" src={content.image} alt="" className="w-full block aspect-square object-cover" />
-      ) : embed ? (
-        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-pink to-lavender">
-          <iframe
-            src={embed}
-            title="Instagram preview"
-            className="absolute -inset-x-2 -top-12 w-[calc(100%+1rem)] h-[180%] border-0 pointer-events-none"
-            loading="lazy"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-white/0 via-transparent to-white/0" />
-        </div>
       ) : (
-        <div className="aspect-square bg-gradient-to-br from-pink to-lavender flex flex-col items-center justify-center text-center p-4">
-          <span className="text-3xl mb-2">📷</span>
-          <span className="text-[10px] font-medium uppercase tracking-wider text-material">Instagram</span>
-          <span className="text-[10px] text-ink-soft mt-1 italic font-display">tap to view</span>
+        <div className="aspect-square bg-gradient-to-br from-pink via-rose/40 to-lavender flex flex-col items-center justify-center text-center p-4 relative">
+          <span className="text-5xl mb-1">📷</span>
+          <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-material">Instagram</span>
+          <span className="text-[10px] text-ink-soft mt-1.5 italic font-display">tap to view</span>
         </div>
       )}
       <div className="p-2.5">
         <SourceBadge url={content.url} />
-        {content.title && <p className="text-xs font-medium text-ink mt-1 line-clamp-2">{content.title}</p>}
+        {content.title && content.title !== content.url && (
+          <p className="text-xs font-medium text-ink mt-1 line-clamp-2">{content.title}</p>
+        )}
       </div>
     </div>
   )
@@ -127,10 +129,8 @@ function GenericCard({ content }: { content: LinkContent }) {
       )}
       <div className="p-2.5">
         <SourceBadge url={content.url} />
-        {content.title ? (
-          <p className="text-xs font-medium text-ink mt-1 line-clamp-2">{content.title}</p>
-        ) : (
-          <p className="text-xs text-muted mt-1 truncate">{getHostname(content.url)}</p>
+        {realTitle(content) && (
+          <p className="text-xs font-medium text-ink mt-1 line-clamp-2">{realTitle(content)}</p>
         )}
         {content.description && (
           <p className="text-[10px] text-muted mt-1 line-clamp-2 italic font-display">{content.description}</p>

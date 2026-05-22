@@ -64,9 +64,13 @@ export function getInstagramEmbedUrl(url: string): string | null {
   try {
     const u = new URL(url)
     if (!u.hostname.includes('instagram')) return null
-    const match = u.pathname.match(/^\/(p|reel|tv)\/([^/]+)/)
+    // Handles classic + /share/ variants:
+    //   /p/XYZ/      /reel/XYZ/       /tv/XYZ/
+    //   /share/p/XYZ /share/reel/XYZ  /share/r/XYZ
+    const match = u.pathname.match(/^\/(?:share\/)?(p|reel|tv|r)\/([^/]+)/)
     if (!match) return null
-    return `https://www.instagram.com/${match[1]}/${match[2]}/embed`
+    const type = match[1] === 'r' ? 'reel' : match[1]
+    return `https://www.instagram.com/${type}/${match[2]}/embed`
   } catch {
     return null
   }
