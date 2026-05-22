@@ -4,6 +4,7 @@ import { ArrowLeft, Link as LinkIcon } from 'lucide-react'
 import { useAuth } from '@/store/auth'
 import { useBoard, gradientClasses } from '@/hooks/useBoards'
 import { addBoardItem } from '@/hooks/useBoardItems'
+import { stripUndefined } from '@/lib/firebase-helpers'
 import { cn } from '@/lib/utils'
 
 function detectSource(url: string): string | undefined {
@@ -47,14 +48,13 @@ export default function AddLink() {
     setSubmitting(true)
     setError(null)
     try {
-      const source = detectSource(url.trim())
       await addBoardItem(boardId, {
         type: 'link',
-        content: {
+        content: stripUndefined({
           url: url.trim(),
           title: title.trim() || undefined,
-          source,
-        },
+          source: detectSource(url.trim()),
+        }),
         addedBy: me,
       })
       navigate(`/board/${boardId}`)

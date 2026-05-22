@@ -94,7 +94,7 @@ export default function Dashboard() {
           {pact && ` · ${daysLeftForPact(pact)} days left`}
         </p>
 
-        {rewardBoard ? (
+        {pact && pact.rewardBoardId && rewardBoard ? (
           <Link
             to={`/board/${rewardBoard.id}`}
             className={cn(
@@ -107,6 +107,10 @@ export default function Dashboard() {
               unlocks <em className="italic">{rewardBoard.name}</em>
             </span>
           </Link>
+        ) : pact && pact.rewardBoardId && !rewardBoard ? (
+          <span className="mt-3 rounded-pill bg-paper px-4 py-1.5 text-xs text-faint">
+            loading reward…
+          </span>
         ) : pact ? (
           <Link
             to="/pact-edit"

@@ -7,6 +7,7 @@ import { ArrowLeft, Trash2 } from 'lucide-react'
 import { useActivePact, updateActivePact, abandonActivePact, dayNumberInPact, pactDurationDays } from '@/hooks/usePact'
 import { useBoards, gradientClasses } from '@/hooks/useBoards'
 import { cn, todayStr } from '@/lib/utils'
+import { formatDisplayDate } from '@/lib/firebase-helpers'
 
 const schema = z.object({
   name: z.string().trim().min(1).max(40),
@@ -90,20 +91,24 @@ export default function PactEdit() {
       </div>
 
       <div className="mb-7 grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-[11px] uppercase tracking-[0.2em] text-muted">start {startLocked && '🔒'}</label>
-          <input
-            type="date"
-            disabled={startLocked}
-            {...register('startDate')}
-            className={cn(
-              'mt-2 w-full rounded-card border px-3 py-3 text-sm outline-none transition',
-              startLocked ? 'border-dashed border-line bg-paper text-muted' : 'border-line bg-white focus:border-apeksha'
-            )}
-          />
+        <div className="min-w-0">
+          <label className="text-[11px] uppercase tracking-[0.2em] text-muted">
+            start {startLocked && '🔒'}
+          </label>
+          {startLocked ? (
+            <div className="mt-2 w-full rounded-card border border-dashed border-line bg-paper px-3 py-3 text-sm text-muted truncate">
+              {formatDisplayDate(pact.startDate)}
+            </div>
+          ) : (
+            <input
+              type="date"
+              {...register('startDate')}
+              className="mt-2 w-full rounded-card border border-line bg-white px-3 py-3 text-sm outline-none focus:border-apeksha transition"
+            />
+          )}
           {startLocked && <p className="text-[10px] text-muted mt-1">pact already started</p>}
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="text-[11px] uppercase tracking-[0.2em] text-muted">end</label>
           <input
             type="date"
@@ -138,35 +143,56 @@ export default function PactEdit() {
 
       <div className="mb-8">
         <label className="text-[11px] uppercase tracking-[0.2em] text-muted">reward board</label>
-        <p className="text-xs text-faint italic font-display mt-0.5 mb-2">
+        <p className="text-xs text-faint italic font-display mt-0.5 mb-3">
           the board this pact unlocks when you hit the target
         </p>
+
         {boards.length === 0 ? (
           <div className="rounded-card border border-dashed border-line bg-paper p-4 text-center">
             <p className="text-sm text-muted">no boards yet</p>
             <Link to="/board-new" className="text-xs text-apeksha mt-1 inline-block">create one →</Link>
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {boards.map((b) => {
-              const active = rewardBoardId === b.id
-              return (
-                <button
-                  key={b.id}
-                  type="button"
-                  onClick={() => setRewardBoardId(active ? null : b.id)}
-                  className={cn(
-                    'rounded-pill px-3 py-1.5 text-sm flex items-center gap-1.5 border-2 bg-gradient-to-br transition',
-                    gradientClasses(b.coverColor),
-                    active ? 'border-ink' : 'border-transparent opacity-60 hover:opacity-100'
-                  )}
-                >
-                  <span>{b.emoji}</span>
-                  <span className="truncate max-w-[120px]">{b.name}</span>
-                </button>
-              )
-            })}
-          </div>
+          <>
+            <div className="space-y-2">
+              {boards.map((b) => {
+                const active = rewardBoardId === b.id
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => setRewardBoardId(b.id)}
+                    className={cn(
+                      'w-full rounded-card border-2 p-3 flex items-center gap-3 transition active:scale-[0.99]',
+                      active
+                        ? cn('border-apeksha bg-gradient-to-br shadow-sm', gradientClasses(b.coverColor))
+                        : 'border-line bg-white hover:border-line-strong'
+                    )}
+                  >
+                    <span className="text-2xl">{b.emoji}</span>
+                    <span className="flex-1 text-left">
+                      <span className="block text-sm font-medium truncate">{b.name}</span>
+                      <span className="text-[10px] text-muted">{active ? 'selected · the reward' : 'tap to choose'}</span>
+                    </span>
+                    {active && (
+                      <span className="w-6 h-6 rounded-full bg-white text-apeksha flex items-center justify-center text-sm shrink-0">
+                        ✓
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+            {rewardBoardId && (
+              <button
+                type="button"
+                onClick={() => setRewardBoardId(null)}
+                className="text-xs text-muted hover:text-material mt-3 underline"
+              >
+                clear reward
+              </button>
+            )}
+          </>
         )}
       </div>
 

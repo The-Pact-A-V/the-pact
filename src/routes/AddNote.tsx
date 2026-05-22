@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '@/store/auth'
 import { useBoard, gradientClasses } from '@/hooks/useBoards'
 import { addBoardItem } from '@/hooks/useBoardItems'
+import { stripUndefined } from '@/lib/firebase-helpers'
 import { cn } from '@/lib/utils'
 
 const COLOR_OPTIONS = [
@@ -35,7 +36,7 @@ export default function AddNote() {
     try {
       await addBoardItem(boardId, {
         type: 'note',
-        content: { text: text.trim(), color, emoji: emoji || undefined },
+        content: stripUndefined({ text: text.trim(), color, emoji: emoji || undefined }),
         addedBy: me,
       })
       navigate(`/board/${boardId}`)

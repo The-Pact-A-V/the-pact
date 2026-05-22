@@ -5,6 +5,7 @@ import { useAuth } from '@/store/auth'
 import { useBoard, gradientClasses } from '@/hooks/useBoards'
 import { addBoardItem } from '@/hooks/useBoardItems'
 import { uploadPhoto } from '@/lib/storage'
+import { stripUndefined } from '@/lib/firebase-helpers'
 import { cn } from '@/lib/utils'
 
 export default function AddPhoto() {
@@ -37,7 +38,7 @@ export default function AddPhoto() {
       const url = await uploadPhoto(file, me, boardId)
       await addBoardItem(boardId, {
         type: 'photo',
-        content: { url, caption: caption.trim() || undefined },
+        content: stripUndefined({ url, caption: caption.trim() || undefined }),
         addedBy: me,
       })
       navigate(`/board/${boardId}`)
