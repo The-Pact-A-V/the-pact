@@ -78,12 +78,31 @@ function YoutubeCard({ content }: { content: LinkContent }) {
 }
 
 function SpotifyCard({ content }: { content: LinkContent }) {
+  const embed = getSpotifyEmbedUrl(content.url)
+  // Spotify's compact embed (152 px tall) is rock-solid — works every time,
+  // shows album art + track name + tiny play button. Use it as the default
+  // card body instead of relying on a fetched OG image.
   return (
-    <div className="rounded-card overflow-hidden bg-sage border border-sage-deep shadow-sm break-inside-avoid mb-3">
-      {content.image && (
+    <div className="rounded-card overflow-hidden border border-sage-deep shadow-sm break-inside-avoid mb-3">
+      {content.image ? (
         <img loading="lazy" src={content.image} alt="" className="w-full block aspect-square object-cover" />
+      ) : embed ? (
+        <iframe
+          src={embed}
+          title="Spotify"
+          className="w-full block border-0 bg-sage"
+          style={{ height: 152 }}
+          loading="lazy"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        />
+      ) : (
+        <div className="aspect-square bg-gradient-to-br from-sage to-sage-deep flex flex-col items-center justify-center text-center p-4">
+          <span className="text-5xl mb-1">🎵</span>
+          <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-physical">Spotify</span>
+          <span className="text-[10px] text-ink-soft mt-1.5 italic font-display">tap to play</span>
+        </div>
       )}
-      <div className="p-2.5">
+      <div className="p-2.5 bg-sage">
         <SourceBadge url={content.url} />
         {realTitle(content) && <p className="text-xs font-medium text-ink mt-1 line-clamp-2">{realTitle(content)}</p>}
       </div>
