@@ -1,5 +1,8 @@
+import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCelebration } from '@/store/celebration'
+import { usePrefs } from '@/store/prefs'
+import { playMilestoneChime, vibrate } from '@/lib/sound'
 import JarSVG from './JarSVG'
 import type { MilestoneThreshold } from '@/hooks/useMilestones'
 
@@ -45,6 +48,15 @@ const LOOKS: Record<MilestoneThreshold, Look> = {
 export default function MilestoneOverlay() {
   const active = useCelebration((s) => s.active)
   const hide = useCelebration((s) => s.hide)
+  const soundOn = usePrefs((s) => s.soundOn)
+
+  useEffect(() => {
+    if (active && soundOn) {
+      playMilestoneChime()
+      vibrate([30, 80, 30, 80, 50])
+    }
+  }, [active, soundOn])
+
   if (!active) return null
   const look = LOOKS[active]
 

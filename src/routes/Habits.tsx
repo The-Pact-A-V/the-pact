@@ -14,6 +14,8 @@ import {
   isComebackDay,
 } from '@/hooks/useDailyLogs'
 import { useAuth, otherUser, userName } from '@/store/auth'
+import { usePrefs } from '@/store/prefs'
+import { playTickClick, vibrate } from '@/lib/sound'
 import { todayStr, cn, dayName, parseDate } from '@/lib/utils'
 import { freqLabel, isScheduledOn } from '@/lib/frequency'
 import type { Activity, Category, Difficulty, UserId } from '@/types'
@@ -163,6 +165,7 @@ export default function Habits() {
   const me = useAuth((s) => s.user) ?? 'apeksha'
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+  const soundOn = usePrefs((s) => s.soundOn)
 
   const peekMode = searchParams.get('peek') === 'true'
   const viewedUser: UserId = peekMode ? otherUser(me) : me
@@ -207,6 +210,11 @@ export default function Habits() {
   async function handleToggle(activity: Activity) {
     if (peekMode) return
     const currently = isTicked(logs, viewedDate, activity.id)
+    if (!currently && soundOn) {
+      // Only chime on the "tick on" — silence the untick path to avoid noise
+      playTickClick()
+      vibrate(10)
+    }
     try {
       await toggleLog(me, viewedDate, activity.id, !currently, activity.points)
     } catch (err) {
