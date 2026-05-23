@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ExternalLink, Play } from 'lucide-react'
 import {
   detectLinkType,
@@ -9,6 +9,7 @@ import {
   sourceLabel,
   getHostname,
 } from '@/lib/links'
+import { fetchSpotifyOEmbed } from '@/lib/spotifyOEmbed'
 
 function realTitle(content: LinkContent): string | undefined {
   // Defensive: a few legacy pins were saved with title === url. Hide those so
@@ -78,23 +79,29 @@ function YoutubeCard({ content }: { content: LinkContent }) {
 }
 
 function SpotifyCard({ content }: { content: LinkContent }) {
-  const embed = getSpotifyEmbedUrl(content.url)
-  // Spotify's compact embed (152 px tall) is rock-solid — works every time,
-  // shows album art + track name + tiny play button. Use it as the default
-  // card body instead of relying on a fetched OG image.
+  // Just the album art + title. Cleaner than the inline player. The full
+  // embed still lives in the detail view, where you can actually listen.
+  const [fetchedImage, setFetchedImage] = useState<string | undefined>()
+  const [fetchedTitle, setFetchedTitle] = useState<string | undefined>()
+
+  useEffect(() => {
+    let cancelled = false
+    if (content.image) return
+    fetchSpotifyOEmbed(content.url).then((r) => {
+      if (cancelled) return
+      setFetchedImage(r.image)
+      setFetchedTitle(r.title)
+    })
+    return () => { cancelled = true }
+  }, [content.url, content.image])
+
+  const image = content.image ?? fetchedImage
+  const title = realTitle(content) ?? fetchedTitle
+
   return (
     <div className="rounded-card overflow-hidden border border-sage-deep shadow-sm break-inside-avoid mb-3">
-      {content.image ? (
-        <img loading="lazy" src={content.image} alt="" className="w-full block aspect-square object-cover" />
-      ) : embed ? (
-        <iframe
-          src={embed}
-          title="Spotify"
-          className="w-full block border-0 bg-sage"
-          style={{ height: 152 }}
-          loading="lazy"
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-        />
+      {image ? (
+        <img loading="lazy" src={image} alt={title ?? ''} className="w-full block aspect-square object-cover" />
       ) : (
         <div className="aspect-square bg-gradient-to-br from-sage to-sage-deep flex flex-col items-center justify-center text-center p-4">
           <span className="text-5xl mb-1">🎵</span>
@@ -104,7 +111,7 @@ function SpotifyCard({ content }: { content: LinkContent }) {
       )}
       <div className="p-2.5 bg-sage">
         <SourceBadge url={content.url} />
-        {realTitle(content) && <p className="text-xs font-medium text-ink mt-1 line-clamp-2">{realTitle(content)}</p>}
+        {title && <p className="text-xs font-medium text-ink mt-1 line-clamp-2">{title}</p>}
       </div>
     </div>
   )
