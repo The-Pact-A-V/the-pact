@@ -5,6 +5,7 @@ import FloatingHearts from '@/components/FloatingHearts'
 import BuzzListener from '@/components/BuzzListener'
 import MilestoneOverlay from '@/components/MilestoneOverlay'
 import MilestoneWatcher from '@/components/MilestoneWatcher'
+import PactDay50Watcher from '@/components/PactDay50Watcher'
 
 import Login from '@/routes/Login'
 import Onboarding from '@/routes/Onboarding'
@@ -55,6 +56,7 @@ export default function App() {
     <AuthBoot>
       <BuzzListener />
       <MilestoneWatcher />
+      <PactDay50Watcher />
       <FloatingHearts />
       <MilestoneOverlay />
       <Routes>
