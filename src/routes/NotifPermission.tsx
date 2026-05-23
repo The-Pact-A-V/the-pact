@@ -1,8 +1,14 @@
 import { useNavigate } from 'react-router-dom'
 import { Bell, Heart, Sun, Calendar } from 'lucide-react'
+import { useActivePact } from '@/hooks/usePact'
 
 export default function NotifPermission() {
   const navigate = useNavigate()
+  const { pact } = useActivePact()
+
+  // Onboarding flow (no pact yet) → step forward to creating one.
+  // Otherwise (dev preview / settings re-entry) → return to where the user came from.
+  const next = pact ? '/settings' : '/pact-new'
 
   async function requestAndContinue() {
     if (typeof Notification !== 'undefined') {
@@ -12,11 +18,11 @@ export default function NotifPermission() {
         // ignore
       }
     }
-    navigate('/pact-new')
+    navigate(next)
   }
 
   function skip() {
-    navigate('/pact-new')
+    navigate(next)
   }
 
   return (
@@ -49,14 +55,21 @@ export default function NotifPermission() {
           <Calendar size={18} className="text-physical mt-0.5 shrink-0" />
           <div>
             <p className="text-sm font-medium">Sunday review</p>
-            <p className="text-xs text-muted">your week, recap'd</p>
+            <p className="text-xs text-muted">your weekly recap</p>
           </div>
         </li>
       </ul>
 
-      <p className="text-[11px] text-faint italic font-display mt-8 max-w-xs">
+      <p className="text-[11px] text-faint italic font-display mt-6 max-w-xs">
         we'll never send marketing. only these three. change anytime in settings.
       </p>
+
+      {pact && (
+        <p className="text-[10px] text-material/70 italic font-display mt-3 max-w-xs">
+          ⚠️ iOS push delivery is not yet wired — these toggles currently only
+          control the in-app chime + banner while the app is open.
+        </p>
+      )}
 
       <div className="mt-auto w-full max-w-sm pt-12 space-y-3">
         <button

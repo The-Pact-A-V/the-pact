@@ -135,26 +135,29 @@ export default function Settings() {
         <Row to="/weekly-review" label="Weekly review" />
       </Section>
 
-      <Section title="notifications">
+      <Section title="in-app alerts">
         <ToggleRow
           label="Buzzes"
-          hint="when your partner sends a 💜"
+          hint="hearts + chime when partner buzzes (app must be open)"
           value={prefs.notifyBuzzes}
           onChange={(v) => prefs.setPref('notifyBuzzes', v)}
         />
         <ToggleRow
           label="Morning check-in"
-          hint="one gentle nudge per day"
+          hint="banner reminder when app is open"
           value={prefs.notifyMorning}
           onChange={(v) => prefs.setPref('notifyMorning', v)}
         />
         <ToggleRow
           label="Sunday review"
-          hint="your weekly recap"
+          hint="weekly recap banner on the dashboard"
           value={prefs.notifySunday}
           onChange={(v) => prefs.setPref('notifySunday', v)}
         />
       </Section>
+      <p className="px-6 mt-2 text-[10px] text-faint italic font-display max-w-xs">
+        these are in-app only · iOS lock-screen push isn't wired yet
+      </p>
 
       <Section title="preferences">
         <ToggleRow
