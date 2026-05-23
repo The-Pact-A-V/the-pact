@@ -1,11 +1,13 @@
+import { useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Trash2 } from 'lucide-react'
+import { ArrowLeft, Bookmark, Link as LinkIcon, MoreHorizontal, Trash2 } from 'lucide-react'
 import { useAuth, userName } from '@/store/auth'
 import { useBoard, gradientClasses } from '@/hooks/useBoards'
 import { useBoardItem, deleteBoardItem, useReactions, toggleReaction } from '@/hooks/useBoardItems'
 import Avatar from '@/components/Avatar'
 import LinkPreview, { type LinkContent } from '@/components/LinkPreview'
 import PinDiscussion from '@/components/PinDiscussion'
+import ActionSheet, { type SheetRow } from '@/components/ActionSheet'
 import { cn } from '@/lib/utils'
 import type { BoardItem, UserId } from '@/types'
 
@@ -76,6 +78,7 @@ export default function ItemDetail() {
   const { board } = useBoard(boardId ?? null)
   const { item, loading } = useBoardItem(boardId ?? null, id ?? null)
   const reactions = useReactions(boardId ?? null, id ?? null)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   if (loading) return <div className="min-h-svh p-6 text-muted italic font-display">loading…</div>
   if (!item || !boardId || !id) return <Navigate to="/boards" replace />
@@ -90,6 +93,43 @@ export default function ItemDetail() {
     navigate(`/board/${boardId}`)
   }
 
+  async function handleCopyLink() {
+    const url = `${window.location.origin}/item/${boardId}/${id}`
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      // ignore
+    }
+  }
+
+  const menuRows: SheetRow[] = [
+    {
+      key: 'save',
+      icon: <Bookmark size={18} className="text-spiritual" />,
+      iconBg: 'bg-butter/40',
+      title: 'Save to another board',
+      subtitle: 'add this pin to a second board',
+      chevron: true,
+      onClick: () => navigate(`/save-to-board/${boardId}/${id}`),
+    },
+    {
+      key: 'copy',
+      icon: <LinkIcon size={18} className="text-physical" />,
+      iconBg: 'bg-sage/40',
+      title: 'Copy pin link',
+      subtitle: 'deep link · works for your partner too',
+      onClick: handleCopyLink,
+    },
+    {
+      key: 'delete',
+      icon: <Trash2 size={18} />,
+      title: 'Delete pin',
+      subtitle: `removes it from ${board?.name ?? 'this board'} · cannot be undone`,
+      destructive: true,
+      onClick: handleDelete,
+    },
+  ]
+
   // Group reactions by emoji
   const byEmoji: Record<string, UserId[]> = {}
   for (const r of reactions) {
@@ -100,9 +140,18 @@ export default function ItemDetail() {
 
   return (
     <div className="min-h-svh p-6 pb-12">
-      <Link to={`/board/${boardId}`} className="inline-flex items-center gap-1 text-muted text-sm">
-        <ArrowLeft size={16} /> back
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link to={`/board/${boardId}`} className="inline-flex items-center gap-1 text-muted text-sm">
+          <ArrowLeft size={16} /> back
+        </Link>
+        <button
+          onClick={() => setMenuOpen(true)}
+          className="p-2 rounded-full hover:bg-paper transition text-muted"
+          aria-label="Pin menu"
+        >
+          <MoreHorizontal size={18} />
+        </button>
+      </div>
 
       {/* Pinned-by chip */}
       <div className="mt-6 flex items-center gap-2">
@@ -174,13 +223,24 @@ export default function ItemDetail() {
       {/* Discussion */}
       <PinDiscussion boardId={boardId} itemId={id} />
 
-      {/* Danger */}
-      <button
-        onClick={handleDelete}
-        className="w-full mt-10 px-4 py-3 rounded-pill bg-white text-material border border-line flex items-center justify-center gap-2 hover:bg-paper transition"
-      >
-        <Trash2 size={16} /> delete pin
-      </button>
+      <ActionSheet
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        rows={menuRows}
+        header={
+          <div className="flex items-center gap-3">
+            <Avatar user={item.addedBy} size="md" />
+            <div className="min-w-0">
+              <p className="font-medium text-sm">
+                {item.type === 'note' ? 'note' : item.type} pin
+              </p>
+              <p className="text-[11px] text-muted">
+                in <em className="italic">{board?.name ?? 'a board'}</em>
+              </p>
+            </div>
+          </div>
+        }
+      />
     </div>
   )
 }

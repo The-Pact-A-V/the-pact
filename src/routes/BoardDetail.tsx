@@ -1,9 +1,11 @@
-import { Link, Navigate, useParams } from 'react-router-dom'
-import { ArrowLeft, MoreHorizontal, Plus, FileText, Camera, Link as LinkIcon, Mic } from 'lucide-react'
+import { useState } from 'react'
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft, MoreHorizontal, Plus, FileText, Camera, Link as LinkIcon, Mic, Pencil, Trash2 } from 'lucide-react'
 import BottomNav from '@/components/BottomNav'
 import Avatar from '@/components/Avatar'
 import LinkPreview, { type LinkContent } from '@/components/LinkPreview'
-import { useBoard, gradientClasses } from '@/hooks/useBoards'
+import ActionSheet, { type SheetRow } from '@/components/ActionSheet'
+import { useBoard, gradientClasses, deleteBoard } from '@/hooks/useBoards'
 import { useBoardItems } from '@/hooks/useBoardItems'
 import { cn } from '@/lib/utils'
 import type { BoardItem } from '@/types'
@@ -102,11 +104,40 @@ function PinCard({ item }: { item: BoardItem }) {
 
 export default function BoardDetail() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const { board, loading: bLoading } = useBoard(id ?? null)
   const { items, loading: iLoading } = useBoardItems(id ?? null)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   if (bLoading) return <div className="min-h-svh p-6 text-muted italic font-display">loading…</div>
   if (!board || !id) return <Navigate to="/boards" replace />
+
+  async function handleDeleteBoard() {
+    if (!id || !board) return
+    if (!confirm(`delete "${board.name}" and all its pins?`)) return
+    await deleteBoard(id)
+    navigate('/boards')
+  }
+
+  const menuRows: SheetRow[] = [
+    {
+      key: 'edit',
+      icon: <Pencil size={18} className="text-spiritual" />,
+      iconBg: 'bg-butter/40',
+      title: 'Edit board',
+      subtitle: 'rename · change cover · recolor',
+      chevron: true,
+      onClick: () => navigate(`/board/${id}/edit`),
+    },
+    {
+      key: 'delete',
+      icon: <Trash2 size={18} />,
+      title: 'Delete board',
+      subtitle: `removes ${items.length} ${items.length === 1 ? 'pin' : 'pins'} · cannot be undone`,
+      destructive: true,
+      onClick: handleDeleteBoard,
+    },
+  ]
 
   return (
     <div className="min-h-svh pb-28">
@@ -115,13 +146,13 @@ export default function BoardDetail() {
           <Link to="/boards" className="inline-flex items-center gap-1 text-ink/80 text-sm">
             <ArrowLeft size={16} /> boards
           </Link>
-          <Link
-            to={`/board/${id}/edit`}
+          <button
+            onClick={() => setMenuOpen(true)}
             className="p-2 rounded-full hover:bg-white/30 transition"
-            aria-label="Edit board"
+            aria-label="Board menu"
           >
             <MoreHorizontal size={18} />
-          </Link>
+          </button>
         </header>
         <div className="px-6 pb-7">
           <span className="text-4xl">{board.emoji}</span>
@@ -183,6 +214,28 @@ export default function BoardDetail() {
       </div>
 
       <BottomNav />
+
+      <ActionSheet
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        rows={menuRows}
+        header={
+          <div className="flex items-center gap-3">
+            <span
+              className={cn(
+                'w-12 h-12 rounded-card bg-gradient-to-br flex items-center justify-center text-xl',
+                gradientClasses(board.coverColor)
+              )}
+            >
+              {board.emoji}
+            </span>
+            <div className="min-w-0">
+              <p className="font-medium truncate">{board.name}</p>
+              <p className="text-[11px] text-muted">{items.length} {items.length === 1 ? 'pin' : 'pins'}</p>
+            </div>
+          </div>
+        }
+      />
     </div>
   )
 }
