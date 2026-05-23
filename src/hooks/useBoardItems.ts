@@ -70,6 +70,7 @@ export async function addBoardItem(boardId: string, input: AddItemInput): Promis
 export async function deleteBoardItem(boardId: string, itemId: string): Promise<void> {
   await remove(ref(db, `board_items/${boardId}/${itemId}`))
   await remove(ref(db, `board_reactions/${boardId}/${itemId}`))
+  await remove(ref(db, `pin_comments/${boardId}/${itemId}`))
 }
 
 export interface ReactionEntry {
@@ -118,4 +119,63 @@ export async function toggleReaction(
   } else {
     await set(r, { userId, emoji, createdAt: Date.now() })
   }
+}
+
+// --------------- Pin comments ----------------
+
+export interface PinComment {
+  id: string
+  userId: UserId
+  text: string
+  createdAt: number
+}
+
+export function usePinComments(boardId: string | null, itemId: string | null) {
+  const [comments, setComments] = useState<PinComment[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!boardId || !itemId) {
+      setComments([])
+      setLoading(false)
+      return
+    }
+    const r = ref(db, `pin_comments/${boardId}/${itemId}`)
+    const unsubscribe = onValue(r, (snap) => {
+      const data = (snap.val() as Record<string, PinComment> | null) ?? {}
+      setComments(Object.values(data).sort((a, b) => a.createdAt - b.createdAt))
+      setLoading(false)
+    })
+    return () => unsubscribe()
+  }, [boardId, itemId])
+
+  return { comments, loading }
+}
+
+export async function addPinComment(
+  boardId: string,
+  itemId: string,
+  userId: UserId,
+  text: string
+): Promise<PinComment> {
+  const trimmed = text.trim()
+  if (!trimmed) throw new Error('comment is empty')
+  const collectionRef = ref(db, `pin_comments/${boardId}/${itemId}`)
+  const newRef = push(collectionRef)
+  const comment: PinComment = {
+    id: newRef.key!,
+    userId,
+    text: trimmed,
+    createdAt: Date.now(),
+  }
+  await set(newRef, comment)
+  return comment
+}
+
+export async function deletePinComment(
+  boardId: string,
+  itemId: string,
+  commentId: string
+): Promise<void> {
+  await remove(ref(db, `pin_comments/${boardId}/${itemId}/${commentId}`))
 }

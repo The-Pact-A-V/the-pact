@@ -5,6 +5,7 @@ import { useBoard, gradientClasses } from '@/hooks/useBoards'
 import { useBoardItem, deleteBoardItem, useReactions, toggleReaction } from '@/hooks/useBoardItems'
 import Avatar from '@/components/Avatar'
 import LinkPreview, { type LinkContent } from '@/components/LinkPreview'
+import PinDiscussion from '@/components/PinDiscussion'
 import { cn } from '@/lib/utils'
 import type { BoardItem, UserId } from '@/types'
 
@@ -169,6 +170,9 @@ export default function ItemDetail() {
           })}
         </div>
       </div>
+
+      {/* Discussion */}
+      <PinDiscussion boardId={boardId} itemId={id} />
 
       {/* Danger */}
       <button
