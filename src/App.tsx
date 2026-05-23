@@ -54,7 +54,6 @@ import BackfillOG from '@/routes/BackfillOG'
 import PactChat from '@/routes/PactChat'
 import JustOneThing from '@/routes/JustOneThing'
 import Journal from '@/routes/Journal'
-import LoveNotes from '@/routes/LoveNotes'
 
 export default function App() {
   return (
@@ -120,7 +119,6 @@ export default function App() {
       <Route path="/chat" element={<RequirePact><PactChat /></RequirePact>} />
       <Route path="/just-one-thing" element={<RequirePact><JustOneThing /></RequirePact>} />
       <Route path="/journal" element={<RequirePact><Journal /></RequirePact>} />
-      <Route path="/letters" element={<RequirePact><LoveNotes /></RequirePact>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

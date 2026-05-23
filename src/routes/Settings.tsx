@@ -127,8 +127,6 @@ export default function Settings() {
         <Row to="/pact-archive" label="Pact archive" />
         <Row to="/habits?peek=true" label="Partner" />
         <Row to="/buzz-inbox" label="Buzz inbox" />
-        <Row to="/letters" label="Love letters · future-dated" />
-        <Row to="/journal" label="Daily journal" />
         <Row to="/about" label="About" />
       </Section>
 
