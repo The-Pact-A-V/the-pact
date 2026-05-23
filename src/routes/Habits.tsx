@@ -86,6 +86,9 @@ function HabitRow({ activity, ticked, streak, readonly, onToggle, onEdit, onDele
         >
           {activity.name}
         </p>
+        {activity.notes && (
+          <p className="text-[11px] text-muted italic font-display truncate">{activity.notes}</p>
+        )}
         <div className="flex items-center gap-2 text-[11px] text-muted mt-0.5">
           <span>{difficultyEmoji(activity.points)} +{activity.points}</span>
           <span className="text-faint">·</span>

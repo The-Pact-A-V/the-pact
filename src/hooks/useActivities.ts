@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { onValue, push, ref, remove, set, update } from 'firebase/database'
 import { db } from '@/lib/firebase'
+import { stripUndefined } from '@/lib/firebase-helpers'
 import type { Activity, Category, Difficulty, Frequency, UserId } from '@/types'
 
 export function useActivities(userId: UserId) {
@@ -12,7 +13,7 @@ export function useActivities(userId: UserId) {
     const unsubscribe = onValue(r, (snap) => {
       const value = snap.val() as Record<string, Activity> | null
       const list = value ? Object.values(value) : []
-      list.sort((a, b) => a.createdAt - b.createdAt)
+      list.sort((a, b) => (a.position ?? a.createdAt) - (b.position ?? b.createdAt))
       setActivities(list)
       setLoading(false)
     })
@@ -48,12 +49,13 @@ interface NewActivityInput {
   category: Category
   points: Difficulty
   frequency: Frequency
+  notes?: string
 }
 
 export async function addActivity(userId: UserId, input: NewActivityInput): Promise<Activity> {
   const collectionRef = ref(db, `activities/${userId}`)
   const newRef = push(collectionRef)
-  const activity: Activity = {
+  const activity: Activity = stripUndefined({
     id: newRef.key!,
     userId,
     pactId: 'current',
@@ -62,7 +64,9 @@ export async function addActivity(userId: UserId, input: NewActivityInput): Prom
     frequency: input.frequency,
     points: input.points,
     createdAt: Date.now(),
-  }
+    notes: input.notes?.trim() || undefined,
+    position: Date.now(), // initial position is creation time
+  }) as Activity
   await set(newRef, activity)
   return activity
 }
@@ -72,6 +76,7 @@ interface UpdateActivityInput {
   category: Category
   points: Difficulty
   frequency: Frequency
+  notes?: string
 }
 
 export async function updateActivity(
@@ -79,12 +84,27 @@ export async function updateActivity(
   activityId: string,
   input: UpdateActivityInput
 ): Promise<void> {
-  await update(ref(db, `activities/${userId}/${activityId}`), {
-    name: input.name.trim(),
-    category: input.category,
-    points: input.points,
-    frequency: input.frequency,
-  })
+  await update(
+    ref(db, `activities/${userId}/${activityId}`),
+    stripUndefined({
+      name: input.name.trim(),
+      category: input.category,
+      points: input.points,
+      frequency: input.frequency,
+      notes: input.notes?.trim() || null, // null clears, undefined would throw
+    })
+  )
+}
+
+export async function updateActivityPositions(
+  userId: UserId,
+  ordered: Array<{ id: string; position: number }>
+): Promise<void> {
+  const updates: Record<string, number> = {}
+  for (const { id, position } of ordered) {
+    updates[`activities/${userId}/${id}/position`] = position
+  }
+  await update(ref(db), updates)
 }
 
 export async function deleteActivity(userId: UserId, activityId: string): Promise<void> {
