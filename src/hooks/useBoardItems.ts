@@ -179,3 +179,43 @@ export async function deletePinComment(
 ): Promise<void> {
   await remove(ref(db, `pin_comments/${boardId}/${itemId}/${commentId}`))
 }
+
+// Subscribe to all comments for a board, grouped by item id. Cheaper than
+// one listener per pin when rendering a board grid.
+export function useBoardComments(boardId: string | null) {
+  const [byItem, setByItem] = useState<Record<string, PinComment[]>>({})
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!boardId) {
+      setByItem({})
+      setLoading(false)
+      return
+    }
+    const r = ref(db, `pin_comments/${boardId}`)
+    const unsubscribe = onValue(r, (snap) => {
+      const data = (snap.val() as Record<string, Record<string, PinComment>> | null) ?? {}
+      const result: Record<string, PinComment[]> = {}
+      for (const itemId in data) {
+        result[itemId] = Object.values(data[itemId]).sort((a, b) => a.createdAt - b.createdAt)
+      }
+      setByItem(result)
+      setLoading(false)
+    })
+    return () => unsubscribe()
+  }, [boardId])
+
+  return { byItem, loading }
+}
+
+const lastSeenKey = (boardId: string, itemId: string) => `pin_seen_${boardId}_${itemId}`
+
+export function getPinLastSeen(boardId: string, itemId: string): number {
+  const raw = typeof window !== 'undefined' ? localStorage.getItem(lastSeenKey(boardId, itemId)) : null
+  return raw ? Number(raw) : 0
+}
+
+export function markPinSeen(boardId: string, itemId: string): void {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(lastSeenKey(boardId, itemId), String(Date.now()))
+}

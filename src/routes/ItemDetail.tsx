@@ -1,8 +1,9 @@
+import { useEffect } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Trash2 } from 'lucide-react'
 import { useAuth, userName } from '@/store/auth'
 import { useBoard, gradientClasses } from '@/hooks/useBoards'
-import { useBoardItem, deleteBoardItem, useReactions, toggleReaction } from '@/hooks/useBoardItems'
+import { useBoardItem, deleteBoardItem, useReactions, toggleReaction, markPinSeen } from '@/hooks/useBoardItems'
 import Avatar from '@/components/Avatar'
 import LinkPreview, { type LinkContent } from '@/components/LinkPreview'
 import PinDiscussion from '@/components/PinDiscussion'
@@ -76,6 +77,11 @@ export default function ItemDetail() {
   const { board } = useBoard(boardId ?? null)
   const { item, loading } = useBoardItem(boardId ?? null, id ?? null)
   const reactions = useReactions(boardId ?? null, id ?? null)
+
+  // Mark the pin as seen on every open so the unread badge clears on the board.
+  useEffect(() => {
+    if (boardId && id) markPinSeen(boardId, id)
+  }, [boardId, id])
 
   if (loading) return <div className="min-h-svh p-6 text-muted italic font-display">loading…</div>
   if (!item || !boardId || !id) return <Navigate to="/boards" replace />
