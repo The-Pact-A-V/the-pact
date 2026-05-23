@@ -4,6 +4,7 @@ import BottomNav from '@/components/BottomNav'
 import JarSVG from '@/components/JarSVG'
 import Avatar from '@/components/Avatar'
 import MemoryCard from '@/components/MemoryCard'
+import PactChatCard from '@/components/PactChatCard'
 import { useAuth, userName } from '@/store/auth'
 import { useCombinedProgress } from '@/hooks/useCombinedProgress'
 import { useActivePact, dayNumberInPact, daysLeftForPact, pactDurationDays } from '@/hooks/usePact'
@@ -152,6 +153,8 @@ export default function Dashboard() {
           add your first habit on the Habits tab — the jar fills as you tick.
         </p>
       )}
+
+      <PactChatCard />
 
       <MemoryCard />
 
