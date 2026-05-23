@@ -6,6 +6,7 @@ import Avatar from '@/components/Avatar'
 import MemoryCard from '@/components/MemoryCard'
 import PactChatCard from '@/components/PactChatCard'
 import JournalCard from '@/components/JournalCard'
+import LoveNoteNudge from '@/components/LoveNoteNudge'
 import { useAuth, userName } from '@/store/auth'
 import { useCombinedProgress } from '@/hooks/useCombinedProgress'
 import { useActivePact, dayNumberInPact, daysLeftForPact, pactDurationDays } from '@/hooks/usePact'
@@ -155,6 +156,7 @@ export default function Dashboard() {
         </p>
       )}
 
+      <LoveNoteNudge />
       <PactChatCard />
       <JournalCard />
 
