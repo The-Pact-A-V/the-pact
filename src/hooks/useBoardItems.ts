@@ -3,6 +3,32 @@ import { onValue, push, ref, remove, set } from 'firebase/database'
 import { db } from '@/lib/firebase'
 import type { BoardItem, UserId } from '@/types'
 
+// Flat list of every pin across every board — used by the "On this day"
+// memory card on the dashboard.
+export function useAllBoardItems() {
+  const [items, setItems] = useState<BoardItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const r = ref(db, 'board_items')
+    const unsubscribe = onValue(r, (snap) => {
+      const data = (snap.val() as Record<string, Record<string, BoardItem>> | null) ?? {}
+      const flat: BoardItem[] = []
+      for (const boardId in data) {
+        for (const itemId in data[boardId]) {
+          flat.push(data[boardId][itemId])
+        }
+      }
+      flat.sort((a, b) => b.addedAt - a.addedAt)
+      setItems(flat)
+      setLoading(false)
+    })
+    return () => unsubscribe()
+  }, [])
+
+  return { items, loading }
+}
+
 export function useBoardItems(boardId: string | null) {
   const [items, setItems] = useState<BoardItem[]>([])
   const [loading, setLoading] = useState(true)
