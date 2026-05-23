@@ -50,6 +50,7 @@ import Settings from '@/routes/Settings'
 import EditProfile from '@/routes/EditProfile'
 import History from '@/routes/History'
 import About from '@/routes/About'
+import BackfillOG from '@/routes/BackfillOG'
 
 export default function App() {
   return (
@@ -111,6 +112,7 @@ export default function App() {
       <Route path="/edit-profile" element={<EditProfile />} />
       <Route path="/history" element={<History />} />
       <Route path="/about" element={<About />} />
+      <Route path="/backfill-og" element={<RequirePact><BackfillOG /></RequirePact>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

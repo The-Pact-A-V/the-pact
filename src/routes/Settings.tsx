@@ -174,6 +174,7 @@ export default function Settings() {
         <Row to="/pact-wrapped" label="Pact wrapped" />
         <Row to="/milestone" label="Milestone ceremony" />
         <Row to="/dashboard-empty" label="Empty dashboard" />
+        <Row to="/backfill-og" label="Backfill link previews" />
       </Section>
 
       <div className="mx-4 mt-8 rounded-card overflow-hidden">
