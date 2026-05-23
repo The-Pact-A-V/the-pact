@@ -34,8 +34,6 @@ export interface Activity {
   frequency: Frequency
   points: Difficulty
   createdAt: number
-  notes?: string
-  position?: number
 }
 
 export interface DailyLogEntry {

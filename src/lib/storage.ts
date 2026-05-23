@@ -13,11 +13,3 @@ export async function uploadPhoto(file: File, addedBy: UserId, boardId: string):
   return getDownloadURL(r)
 }
 
-export async function uploadJournalPhoto(file: File, userId: UserId, date: string): Promise<string> {
-  const blob = await compressImage(file, { maxDim: 1600, quality: 0.82 })
-  // One photo per user per day — overwrite any previous.
-  const path = `journal/${userId}/${date}.jpg`
-  const r = storageRef(storage, path)
-  await uploadBytes(r, blob, { contentType: 'image/jpeg' })
-  return getDownloadURL(r)
-}

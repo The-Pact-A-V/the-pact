@@ -1,11 +1,10 @@
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Check, Flame, GripVertical, Pencil, Sprout, Trash2 } from 'lucide-react'
-import { Reorder, useDragControls } from 'motion/react'
+import { Check, Flame, Pencil, Sprout, Trash2 } from 'lucide-react'
 import BottomNav from '@/components/BottomNav'
 import DayStrip from '@/components/DayStrip'
 import Avatar from '@/components/Avatar'
 import { CATEGORIES, DIFFICULTY_TIERS } from '@/lib/constants'
-import { useActivities, deleteActivity, updateActivityPositions } from '@/hooks/useActivities'
+import { useActivities, deleteActivity } from '@/hooks/useActivities'
 import {
   useDailyLogs,
   toggleLog,
@@ -15,8 +14,6 @@ import {
   isComebackDay,
 } from '@/hooks/useDailyLogs'
 import { useAuth, otherUser, userName } from '@/store/auth'
-import { usePrefs } from '@/store/prefs'
-import { playTickClick, vibrate } from '@/lib/sound'
 import { todayStr, cn, dayName, parseDate } from '@/lib/utils'
 import { freqLabel, isScheduledOn } from '@/lib/frequency'
 import type { Activity, Category, Difficulty, UserId } from '@/types'
@@ -49,13 +46,8 @@ interface HabitRowProps {
 }
 
 function HabitRow({ activity, ticked, streak, readonly, onToggle, onEdit, onDelete }: HabitRowProps) {
-  const dragControls = useDragControls()
-
   return (
-    <Reorder.Item
-      value={activity}
-      dragListener={false}
-      dragControls={dragControls}
+    <div
       className={cn(
         'flex items-center gap-3 rounded-card p-3 border transition',
         ticked ? 'bg-sage border-sage-deep' : 'bg-white border-line',
@@ -92,9 +84,6 @@ function HabitRow({ activity, ticked, streak, readonly, onToggle, onEdit, onDele
         >
           {activity.name}
         </p>
-        {activity.notes && (
-          <p className="text-[11px] text-muted italic font-display truncate">{activity.notes}</p>
-        )}
         <div className="flex items-center gap-2 text-[11px] text-muted mt-0.5">
           <span>{difficultyEmoji(activity.points)} +{activity.points}</span>
           <span className="text-faint">·</span>
@@ -126,17 +115,9 @@ function HabitRow({ activity, ticked, streak, readonly, onToggle, onEdit, onDele
           >
             <Trash2 size={14} />
           </button>
-          <button
-            onPointerDown={(e) => dragControls.start(e)}
-            className="p-2 text-faint hover:text-ink transition shrink-0 cursor-grab active:cursor-grabbing touch-none"
-            aria-label={`Reorder ${activity.name}`}
-            style={{ touchAction: 'none' }}
-          >
-            <GripVertical size={14} />
-          </button>
         </>
       )}
-    </Reorder.Item>
+    </div>
   )
 }
 
@@ -182,7 +163,6 @@ export default function Habits() {
   const me = useAuth((s) => s.user) ?? 'apeksha'
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const soundOn = usePrefs((s) => s.soundOn)
 
   const peekMode = searchParams.get('peek') === 'true'
   const viewedUser: UserId = peekMode ? otherUser(me) : me
@@ -227,11 +207,6 @@ export default function Habits() {
   async function handleToggle(activity: Activity) {
     if (peekMode) return
     const currently = isTicked(logs, viewedDate, activity.id)
-    if (!currently && soundOn) {
-      // Only chime on the "tick on" — silence the untick path to avoid noise
-      playTickClick()
-      vibrate(10)
-    }
     try {
       await toggleLog(me, viewedDate, activity.id, !currently, activity.points)
     } catch (err) {
@@ -244,18 +219,6 @@ export default function Habits() {
     if (!confirm(`Remove "${name}"?`)) return
     try {
       await deleteActivity(me, activityId)
-    } catch (err) {
-      console.warn(err)
-    }
-  }
-
-  async function handleReorder(reordered: Activity[]) {
-    if (peekMode) return
-    // Assign sequential positions in the new order. Spacing them by 1000 so
-    // future inserts between siblings still have room without re-numbering.
-    const updates = reordered.map((a, i) => ({ id: a.id, position: (i + 1) * 1000 }))
-    try {
-      await updateActivityPositions(me, updates)
     } catch (err) {
       console.warn(err)
     }
@@ -398,12 +361,7 @@ export default function Habits() {
                   </span>
                   <span className="text-[11px] text-faint">· {catActs.length}</span>
                 </div>
-                <Reorder.Group
-                  axis="y"
-                  values={catActs}
-                  onReorder={handleReorder}
-                  className="space-y-2"
-                >
+                <div className="space-y-2">
                   {catActs.map((a) => (
                     <HabitRow
                       key={a.id}
@@ -416,7 +374,7 @@ export default function Habits() {
                       onDelete={() => handleDelete(a.id, a.name)}
                     />
                   ))}
-                </Reorder.Group>
+                </div>
               </section>
             )
           })}

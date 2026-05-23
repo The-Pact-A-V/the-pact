@@ -3,32 +3,6 @@ import { onValue, push, ref, remove, set } from 'firebase/database'
 import { db } from '@/lib/firebase'
 import type { BoardItem, UserId } from '@/types'
 
-// Flat list of every pin across every board — used by the "On this day"
-// memory card on the dashboard.
-export function useAllBoardItems() {
-  const [items, setItems] = useState<BoardItem[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const r = ref(db, 'board_items')
-    const unsubscribe = onValue(r, (snap) => {
-      const data = (snap.val() as Record<string, Record<string, BoardItem>> | null) ?? {}
-      const flat: BoardItem[] = []
-      for (const boardId in data) {
-        for (const itemId in data[boardId]) {
-          flat.push(data[boardId][itemId])
-        }
-      }
-      flat.sort((a, b) => b.addedAt - a.addedAt)
-      setItems(flat)
-      setLoading(false)
-    })
-    return () => unsubscribe()
-  }, [])
-
-  return { items, loading }
-}
-
 export function useBoardItems(boardId: string | null) {
   const [items, setItems] = useState<BoardItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -206,42 +180,3 @@ export async function deletePinComment(
   await remove(ref(db, `pin_comments/${boardId}/${itemId}/${commentId}`))
 }
 
-// Subscribe to all comments for a board, grouped by item id. Cheaper than
-// one listener per pin when rendering a board grid.
-export function useBoardComments(boardId: string | null) {
-  const [byItem, setByItem] = useState<Record<string, PinComment[]>>({})
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (!boardId) {
-      setByItem({})
-      setLoading(false)
-      return
-    }
-    const r = ref(db, `pin_comments/${boardId}`)
-    const unsubscribe = onValue(r, (snap) => {
-      const data = (snap.val() as Record<string, Record<string, PinComment>> | null) ?? {}
-      const result: Record<string, PinComment[]> = {}
-      for (const itemId in data) {
-        result[itemId] = Object.values(data[itemId]).sort((a, b) => a.createdAt - b.createdAt)
-      }
-      setByItem(result)
-      setLoading(false)
-    })
-    return () => unsubscribe()
-  }, [boardId])
-
-  return { byItem, loading }
-}
-
-const lastSeenKey = (boardId: string, itemId: string) => `pin_seen_${boardId}_${itemId}`
-
-export function getPinLastSeen(boardId: string, itemId: string): number {
-  const raw = typeof window !== 'undefined' ? localStorage.getItem(lastSeenKey(boardId, itemId)) : null
-  return raw ? Number(raw) : 0
-}
-
-export function markPinSeen(boardId: string, itemId: string): void {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(lastSeenKey(boardId, itemId), String(Date.now()))
-}

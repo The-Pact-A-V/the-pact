@@ -16,7 +16,6 @@ const schema = z.object({
   name: z.string().trim().min(1, 'pick a name').max(60, 'keep it under 60 chars'),
   category: z.enum(['mental', 'physical', 'spiritual', 'material']),
   points: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(5), z.literal(8)]),
-  notes: z.string().max(80).optional(),
   freqType: z.enum(freqTypes),
   freqN: z.number().int().min(1).max(7).optional(),
   freqDays: z.array(z.number().int().min(0).max(6)).optional(),
@@ -87,7 +86,6 @@ export default function AddHabit() {
       name: searchParams.get('name') ?? '',
       category: (searchParams.get('category') as FormData['category']) || undefined,
       points: (Number(searchParams.get('points')) as FormData['points']) || 3,
-      notes: '',
       freqType: 'daily',
       freqN: 3,
       freqDays: [],
@@ -103,7 +101,6 @@ export default function AddHabit() {
       name: existing.name,
       category: existing.category,
       points: existing.points,
-      notes: existing.notes ?? '',
       ...fromFrequency(existing.frequency),
     })
   }, [isEdit, existing, reset])
@@ -125,7 +122,6 @@ export default function AddHabit() {
         category: data.category,
         points: data.points,
         frequency: toFrequency(data),
-        notes: data.notes?.trim() || undefined,
       }
       if (isEdit && editId) {
         await updateActivity(user, editId, payload)
@@ -190,20 +186,6 @@ export default function AddHabit() {
         {errors.name && (
           <p className="text-material text-xs mt-1.5">{errors.name.message}</p>
         )}
-      </div>
-
-      {/* Notes */}
-      <div className="mb-7">
-        <label className="text-[11px] uppercase tracking-[0.2em] text-muted">
-          notes <span className="text-faint normal-case">(optional)</span>
-        </label>
-        <input
-          type="text"
-          placeholder="6am · before coffee · 30 min minimum"
-          {...register('notes')}
-          maxLength={80}
-          className="mt-2 w-full bg-white rounded-card border border-line px-4 py-3 text-sm outline-none focus:border-apeksha transition italic font-display"
-        />
       </div>
 
       {/* Category */}

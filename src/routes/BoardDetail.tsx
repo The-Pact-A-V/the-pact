@@ -1,12 +1,10 @@
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { ArrowLeft, MoreHorizontal, Plus, FileText, Camera, Link as LinkIcon, Mic } from 'lucide-react'
-import { MessageCircle } from 'lucide-react'
 import BottomNav from '@/components/BottomNav'
 import Avatar from '@/components/Avatar'
 import LinkPreview, { type LinkContent } from '@/components/LinkPreview'
 import { useBoard, gradientClasses } from '@/hooks/useBoards'
-import { useBoardItems, useBoardComments, getPinLastSeen, type PinComment } from '@/hooks/useBoardItems'
-import { useAuth } from '@/store/auth'
+import { useBoardItems } from '@/hooks/useBoardItems'
 import { cn } from '@/lib/utils'
 import type { BoardItem } from '@/types'
 
@@ -85,12 +83,7 @@ function VoiceCard({ item }: { item: BoardItem }) {
   )
 }
 
-function PinCard({ item, comments }: { item: BoardItem; comments: PinComment[] }) {
-  const me = useAuth((s) => s.user) ?? 'apeksha'
-  const lastSeen = getPinLastSeen(item.boardId, item.id)
-  const unreadCount = comments.filter((c) => c.userId !== me && c.createdAt > lastSeen).length
-  const totalComments = comments.length
-
+function PinCard({ item }: { item: BoardItem }) {
   const inner = (() => {
     switch (item.type) {
       case 'note': return <NoteCard item={item} />
@@ -101,19 +94,8 @@ function PinCard({ item, comments }: { item: BoardItem; comments: PinComment[] }
     }
   })()
   return (
-    <Link to={`/item/${item.boardId}/${item.id}`} className="block relative active:scale-[0.98] transition">
+    <Link to={`/item/${item.boardId}/${item.id}`} className="block active:scale-[0.98] transition">
       {inner}
-      {totalComments > 0 && (
-        <span
-          className={cn(
-            'absolute bottom-12 left-2 inline-flex items-center gap-1 rounded-pill px-2 py-0.5 text-[10px] font-medium shadow-sm backdrop-blur',
-            unreadCount > 0 ? 'bg-coral text-white' : 'bg-white/90 text-ink-soft'
-          )}
-        >
-          <MessageCircle size={10} fill={unreadCount > 0 ? 'currentColor' : 'none'} />
-          {totalComments}
-        </span>
-      )}
     </Link>
   )
 }
@@ -122,7 +104,6 @@ export default function BoardDetail() {
   const { id } = useParams<{ id: string }>()
   const { board, loading: bLoading } = useBoard(id ?? null)
   const { items, loading: iLoading } = useBoardItems(id ?? null)
-  const { byItem: commentsByItem } = useBoardComments(id ?? null)
 
   if (bLoading) return <div className="min-h-svh p-6 text-muted italic font-display">loading…</div>
   if (!board || !id) return <Navigate to="/boards" replace />
@@ -195,7 +176,7 @@ export default function BoardDetail() {
         {items.length > 0 && (
           <div className="columns-2 gap-3">
             {items.map((it) => (
-              <PinCard key={it.id} item={it} comments={commentsByItem[it.id] ?? []} />
+              <PinCard key={it.id} item={it} />
             ))}
           </div>
         )}
