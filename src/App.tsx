@@ -51,6 +51,7 @@ import EditProfile from '@/routes/EditProfile'
 import History from '@/routes/History'
 import About from '@/routes/About'
 import BackfillOG from '@/routes/BackfillOG'
+import SaveToBoard from '@/routes/SaveToBoard'
 
 export default function App() {
   return (
@@ -113,6 +114,7 @@ export default function App() {
       <Route path="/history" element={<History />} />
       <Route path="/about" element={<About />} />
       <Route path="/backfill-og" element={<RequirePact><BackfillOG /></RequirePact>} />
+      <Route path="/save-to-board/:boardId/:id" element={<RequirePact><SaveToBoard /></RequirePact>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
