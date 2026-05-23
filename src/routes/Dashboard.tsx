@@ -159,7 +159,18 @@ export default function Dashboard() {
       <MemoryCard />
 
       {activities.length > 0 && (
-        <section className="mx-6 mt-8">
+        <div className="mx-6 mt-6 flex justify-end">
+          <Link
+            to="/just-one-thing"
+            className="text-xs text-muted hover:text-ink transition italic font-display inline-flex items-center gap-1"
+          >
+            ⭐ overwhelmed? just one thing →
+          </Link>
+        </div>
+      )}
+
+      {activities.length > 0 && (
+        <section className="mx-6 mt-4">
           <p className="text-[11px] uppercase tracking-[0.2em] text-muted mb-2.5">
             today · by category
           </p>
