@@ -52,6 +52,7 @@ import History from '@/routes/History'
 import About from '@/routes/About'
 import BackfillOG from '@/routes/BackfillOG'
 import SaveToBoard from '@/routes/SaveToBoard'
+import AddVoice from '@/routes/AddVoice'
 
 export default function App() {
   return (
@@ -99,6 +100,7 @@ export default function App() {
       <Route path="/add-note/:boardId" element={<RequirePact><AddNote /></RequirePact>} />
       <Route path="/add-photo/:boardId" element={<RequirePact><AddPhoto /></RequirePact>} />
       <Route path="/add-link/:boardId" element={<RequirePact><AddLink /></RequirePact>} />
+      <Route path="/add-voice/:boardId" element={<RequirePact><AddVoice /></RequirePact>} />
 
       {/* Buzzer */}
       <Route path="/buzzer" element={<RequirePact><Buzzer /></RequirePact>} />

@@ -13,3 +13,10 @@ export async function uploadPhoto(file: File, addedBy: UserId, boardId: string):
   return getDownloadURL(r)
 }
 
+export async function uploadVoicePin(blob: Blob, addedBy: UserId, boardId: string, mimeType: string): Promise<string> {
+  const ext = mimeType.includes('webm') ? 'webm' : mimeType.includes('mp4') ? 'mp4' : 'audio'
+  const path = `boards/${boardId}/voice_${Date.now()}_${addedBy}.${ext}`
+  const r = storageRef(storage, path)
+  await uploadBytes(r, blob, { contentType: mimeType })
+  return getDownloadURL(r)
+}

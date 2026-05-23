@@ -186,14 +186,13 @@ export default function BoardDetail() {
           <LinkIcon size={20} className="text-spiritual mb-1" />
           link
         </Link>
-        <button
-          disabled
-          className="rounded-card bg-paper border border-line p-3 flex flex-col items-center text-xs opacity-50"
-          aria-label="Voice — coming soon"
+        <Link
+          to={`/add-voice/${id}`}
+          className="rounded-card bg-white border border-line p-3 flex flex-col items-center text-xs shadow-sm active:scale-95 transition"
         >
-          <Mic size={20} className="text-faint mb-1" />
+          <Mic size={20} className="text-material mb-1" />
           voice
-        </button>
+        </Link>
       </div>
 
       {/* Pin grid (masonry-ish using columns) */}

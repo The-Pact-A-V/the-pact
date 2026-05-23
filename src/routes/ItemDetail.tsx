@@ -60,9 +60,29 @@ function ItemContent({ item }: { item: BoardItem }) {
     case 'voice': {
       const c = item.content as unknown as VoiceContent
       return (
-        <div className="rounded-hero bg-sage p-6">
-          <p className="font-display italic text-ink">voice note · {c.durationSeconds ?? '?'}s</p>
-          {c.caption && <p className="text-sm mt-2">{c.caption}</p>}
+        <div className="rounded-hero bg-sage/40 border border-sage-deep p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="w-8 h-8 rounded-full bg-physical text-white flex items-center justify-center">
+              🎤
+            </span>
+            <p className="font-display italic text-ink">
+              voice note
+              {c.durationSeconds != null && <span className="text-muted not-italic font-sans"> · {c.durationSeconds}s</span>}
+            </p>
+          </div>
+          {c.audioUrl ? (
+            <audio
+              src={c.audioUrl}
+              controls
+              preload="metadata"
+              className="w-full"
+            />
+          ) : (
+            <p className="text-sm text-muted italic font-display">audio missing</p>
+          )}
+          {c.caption && (
+            <p className="text-sm italic font-display text-ink-soft mt-3">{c.caption}</p>
+          )}
         </div>
       )
     }
