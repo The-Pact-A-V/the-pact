@@ -1,14 +1,19 @@
 @import "tailwindcss";
 
+/*
+ * Tokens lifted verbatim from /design/design.css (the canonical mockup
+ * stylesheet). When in doubt, that file wins.
+ */
 @theme {
   /* surfaces */
   --color-cream: #FBF8F0;
+  --color-cream-deep: #F5EFE0;
   --color-surface: #FFFFFF;
   --color-paper: #FDFAF2;
   --color-line: #EFE9DA;
   --color-line-strong: #DCD3BD;
 
-  /* pastels for category-tinted cards */
+  /* pastels */
   --color-peach: #FFE9D6;
   --color-peach-deep: #FFC9A0;
   --color-lavender: #E8DFF8;
@@ -19,16 +24,20 @@
   --color-pink-deep: #FBADC2;
   --color-butter: #FFF3C2;
   --color-butter-deep: #F5DB73;
+  --color-sky: #D9EAF7;
 
   /* text */
   --color-ink: #1A1814;
   --color-ink-soft: #3A342B;
   --color-muted: #7A7062;
   --color-faint: #B0A693;
+  --color-low: #D5CCB8;
 
   /* identity */
   --color-apeksha: #7B6FB8;
+  --color-apeksha-light: #C9BDED;
   --color-ved: #5A8C66;
+  --color-ved-light: #BAD6BE;
 
   /* accents */
   --color-coral: #FF8C5A;
@@ -36,7 +45,7 @@
   --color-gold: #F5C24A;
   --color-rose: #D8869C;
 
-  /* category tokens */
+  /* category tokens (locked) */
   --color-mental: #7B6FB8;
   --color-mental-bg: #E8DFF8;
   --color-physical: #5A8C66;
@@ -54,6 +63,12 @@
   --radius-pill: 100px;
   --radius-card: 18px;
   --radius-hero: 22px;
+
+  /* shadow stack — warm rgba per design.css */
+  --shadow-sm: 0 2px 8px rgba(60, 40, 20, 0.05);
+  --shadow-md: 0 8px 24px -8px rgba(60, 40, 20, 0.12);
+  --shadow-lg: 0 20px 50px -16px rgba(60, 40, 20, 0.18);
+  --shadow-xl: 0 40px 100px -30px rgba(60, 40, 20, 0.25);
 }
 
 html, body, #root {
@@ -66,3 +81,24 @@ html, body, #root {
 }
 
 body { margin: 0; }
+
+/*
+ * Pull Tailwind's default shadow scale into the warm design values so
+ * shadow-sm / shadow-md / shadow-lg / shadow-xl pick them up everywhere
+ * without case-by-case rewriting.
+ */
+@layer base {
+  :root {
+    --tw-shadow-sm: var(--shadow-sm);
+    --tw-shadow-md: var(--shadow-md);
+    --tw-shadow-lg: var(--shadow-lg);
+    --tw-shadow-xl: var(--shadow-xl);
+  }
+}
+
+@layer utilities {
+  .shadow-sm { box-shadow: var(--shadow-sm); }
+  .shadow-md { box-shadow: var(--shadow-md); }
+  .shadow-lg { box-shadow: var(--shadow-lg); }
+  .shadow-xl { box-shadow: var(--shadow-xl); }
+}
