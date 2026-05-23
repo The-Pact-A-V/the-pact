@@ -1,10 +1,11 @@
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Check, Flame, Pencil, Sprout, Trash2 } from 'lucide-react'
+import { Check, Flame, GripVertical, Pencil, Sprout, Trash2 } from 'lucide-react'
+import { Reorder, useDragControls } from 'motion/react'
 import BottomNav from '@/components/BottomNav'
 import DayStrip from '@/components/DayStrip'
 import Avatar from '@/components/Avatar'
 import { CATEGORIES, DIFFICULTY_TIERS } from '@/lib/constants'
-import { useActivities, deleteActivity } from '@/hooks/useActivities'
+import { useActivities, deleteActivity, updateActivityPositions } from '@/hooks/useActivities'
 import {
   useDailyLogs,
   toggleLog,
@@ -48,8 +49,13 @@ interface HabitRowProps {
 }
 
 function HabitRow({ activity, ticked, streak, readonly, onToggle, onEdit, onDelete }: HabitRowProps) {
+  const dragControls = useDragControls()
+
   return (
-    <div
+    <Reorder.Item
+      value={activity}
+      dragListener={false}
+      dragControls={dragControls}
       className={cn(
         'flex items-center gap-3 rounded-card p-3 border transition',
         ticked ? 'bg-sage border-sage-deep' : 'bg-white border-line',
@@ -120,9 +126,17 @@ function HabitRow({ activity, ticked, streak, readonly, onToggle, onEdit, onDele
           >
             <Trash2 size={14} />
           </button>
+          <button
+            onPointerDown={(e) => dragControls.start(e)}
+            className="p-2 text-faint hover:text-ink transition shrink-0 cursor-grab active:cursor-grabbing touch-none"
+            aria-label={`Reorder ${activity.name}`}
+            style={{ touchAction: 'none' }}
+          >
+            <GripVertical size={14} />
+          </button>
         </>
       )}
-    </div>
+    </Reorder.Item>
   )
 }
 
@@ -230,6 +244,18 @@ export default function Habits() {
     if (!confirm(`Remove "${name}"?`)) return
     try {
       await deleteActivity(me, activityId)
+    } catch (err) {
+      console.warn(err)
+    }
+  }
+
+  async function handleReorder(reordered: Activity[]) {
+    if (peekMode) return
+    // Assign sequential positions in the new order. Spacing them by 1000 so
+    // future inserts between siblings still have room without re-numbering.
+    const updates = reordered.map((a, i) => ({ id: a.id, position: (i + 1) * 1000 }))
+    try {
+      await updateActivityPositions(me, updates)
     } catch (err) {
       console.warn(err)
     }
@@ -372,7 +398,12 @@ export default function Habits() {
                   </span>
                   <span className="text-[11px] text-faint">· {catActs.length}</span>
                 </div>
-                <div className="space-y-2">
+                <Reorder.Group
+                  axis="y"
+                  values={catActs}
+                  onReorder={handleReorder}
+                  className="space-y-2"
+                >
                   {catActs.map((a) => (
                     <HabitRow
                       key={a.id}
@@ -385,7 +416,7 @@ export default function Habits() {
                       onDelete={() => handleDelete(a.id, a.name)}
                     />
                   ))}
-                </div>
+                </Reorder.Group>
               </section>
             )
           })}
